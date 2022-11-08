@@ -6,16 +6,15 @@
 [Documentation de la FlatList React Native](https://reactnative.dev/docs/flatlist)  
 [Documentation des Hooks](https://fr.reactjs.org/docs/hooks-intro.html)  
 [Documentation de react-navigation](https://reactnavigation.org/docs/en/getting-started.html)  
-[Documentation API Fetch](https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch)  
+[Documentation API Fetch](https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch)
 
 [Feuille récap des propriétés pour les styles](https://github.com/vhpoet/react-native-styling-cheat-sheet)
-
 
 # Get started - CRNA
 
 ## Les outils
 
-Installez [Node.js (LTS).](https://nodejs.org/en/download/)  
+Installez [Node.js (LTS).](https://nodejs.org/en/download/)
 
 Installez **Expo**:
 
@@ -38,7 +37,6 @@ Initialisez votre projet (template blank):
 ```
 expo init nomdudossier
 ```
-
 
 ## Lancer l'application
 
@@ -81,8 +79,9 @@ Objectif, réaliser ce composant:
 <img src="imgs/search1.png" height="400" />
 
 Par convention et réutilisabilité:
-* 1 composant = 1 fichier
-* nom du fichier contenant un composant commence par une majuscule
+
+- 1 composant = 1 fichier
+- nom du fichier contenant un composant commence par une majuscule
 
 Créez un dossier _src_, puis un dossier _components_, puis le fichier _Search.js_ (src/components/Search.js).
 
@@ -147,7 +146,7 @@ const myArrowFunction = () => {
 C'est une autre façon d'écrire les fonctions en JS, avec quelques subtilités comme la syntaxe, le contexte ou le passage d'arguments.  
 Pour l'instant utiliser une _function_ ou une _arrow function_ ne change rien, mais par la suite cela aura un impact. Par défaut, utilisez **toujours des _arrow functions_ pour écrire vos composants.**
 
-N'oubliez pas d'importer les composants React et React native en premiers dans vos composants. React Native exporte ses composants dans un seul fichier 'react-native'. 
+N'oubliez pas d'importer les composants React et React native en premiers dans vos composants. React Native exporte ses composants dans un seul fichier 'react-native'.
 
 ```
 import React from 'react';
@@ -259,7 +258,6 @@ const styles = StyleSheet.create({
 
 Après sauvegarde des fichiers, vous pouvez observer le résultat directement sur votre appareil. J'ai corrigé le soucis avec la barre d'état dans le _style_ du fichier App.js, on verra cela plus tard.
 
-
 ### Exercice: s'entrainer sur un composant custom
 
 Créez un nouveau composant Test.js et faite en sorte d'obtenir le résultat suivant:
@@ -272,6 +270,185 @@ Créez un nouveau composant Test.js et faite en sorte d'obtenir le résultat sui
 ```
 //Test.js
 
+import React from "react";
+import { View, TextInput, Text, Button } from "react-native";
+
+const Test = () => {
+  return (
+    <View>
+      <Text>Nouvelle recrue</Text>
+      <TextInput placeholder="Entrez votre nom" />
+      <TextInput placeholder="Entrez votre prénom" />
+      <Button title="Ajouter" onPress={() => {}} />
+      <Text>Composition de l'équipage :</Text>
+    </View>
+  );
+};
+
+export default Test;
+
+```
+
+</details>
+<br>
+
+## Ajouter des styles
+
+Les styles permettent de contrôler le rendu graphique des composants. Première approche pour ajouter des styles:
+
+```
+const Search = () => {
+  return (
+    <View style={{ paddingHorizontal: 12, marginTop: 16 }}>
+      <TextInput placeholder="Terme à chercher" style={{ marginBottom: 16 }} />
+      <Button
+        title="Rechercher"
+        color="#003482"
+        onPress={() => {
+          console.log("Coucou");
+        }}
+      />
+    </View>
+  );
+};
+```
+
+A noter que le composant Button n'a pas de propriété _style_. Il faut soit utiliser une propriété existante (ici _color_), soit utiliser un autre composant React Native (_ToucheableOpacity_ par exemple).  
+Résultat obtenu:
+
+<img src="imgs/style1.png" height="400" />
+
+Une bonne pratique, pour améliorer la lisibilité du code, est d'externaliser les styles du composant. Pour cela il faut utiliser _StyleSheet_:
+
+```
+import { ..., StyleSheet } from 'react-native';
+```
+
+Il faut ensuite définir les styles du composant, en dehors de ce dernier mais dans le même fichier:
+
+```
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
+```
+
+Et enfin les appliquer à nos éléments, en utilisant les noms des variables utilisées à l'étape précédente:
+
+```
+const Search = () => {
+  return (
+    <View style={styles.container}>
+      <TextInput
+        placeholder="Terme à chercher"
+        style={styles.inputSearchTerm}
+      />
+      <Button
+        title="Rechercher"
+        color="#003482"
+        onPress={() => {
+          console.log("Coucou");
+        }}
+      />
+    </View>
+  );
+};
+```
+
+**Gérer les couleurs dans l'application**
+
+La couleur de notre bouton est définie dans ce composant, mais nous allons l'utiliser à plusieurs endroits de notre application. Il faudrait définir une variable une seule fois pour pouvoir l'utiliser au besoin.  
+Pour cela, créez un fichier pour gérer l'ensemble des couleurs. Commençez par créer un dossier _src/definitions_ puis un fichier _Colors.js_. Dans ce dernier, créez une variable pour la couleur:
+
+```
+//Colors.js
+
+const Colors = {
+  primary_blue: "#003482",
+};
+
+export default Colors;
+
+```
+
+Il vous reste à importer le fichier dans le composant pour pouvoir utiliser la couleur:
+
+```
+...
+import Colors from '../definitions/Colors';
+...
+      <Button
+        title="Rechercher"
+        color={Colors.primary_blue}
+        onPress={() => {
+          console.log("Coucou");
+        }}
+      />
+...
+```
+
+<details>
+<summary>Code complet</summary>
+
+```
+//Search.js
+
+import React from "react";
+import { View, TextInput, Button, StyleSheet } from "react-native";
+
+import Colors from "../definitions/Colors";
+
+const Search = () => {
+  return (
+    <View style={styles.container}>
+      <TextInput
+        placeholder="Terme à chercher"
+        style={styles.inputSearchTerm}
+      />
+      <Button
+        title="Rechercher"
+        color={Colors.primary_blue}
+        onPress={() => {
+          console.log("Coucou");
+        }}
+      />
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
+
+```
+
+</details>
+<br>
+
+### Exercice: ajouter un style au composant custom
+
+Reprenez le composant _Test.js_ et affichez le résultat suivant:
+
+<img src="imgs/test2.png" height="400" />
+
+<details>
+<summary>Correction</summary>
+
+```
+//Test.js
 ```
 
 </details>

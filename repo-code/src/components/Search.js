@@ -1,16 +1,34 @@
-import React from 'react';
-import { View, TextInput, Button } from 'react-native';
+import React from "react";
+import { View, TextInput, Button, StyleSheet } from "react-native";
+
+import Colors from "../definitions/Colors";
 
 const Search = () => {
   return (
-    <View>
+    <View style={styles.container}>
       <TextInput
-        placeholder="Terme à chercher" />
+        placeholder="Terme à chercher"
+        style={styles.inputSearchTerm}
+      />
       <Button
         title="Rechercher"
-        onPress={() => { console.log('Coucou'); }} />
+        color={Colors.primary_blue}
+        onPress={() => {
+          console.log("Coucou");
+        }}
+      />
     </View>
   );
 };
 
 export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
