@@ -1044,7 +1044,132 @@ Rendu attendu:
 
 ```
 //Test.js
+
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import {
+  View,
+  TextInput,
+  Text,
+  Button,
+  StyleSheet,
+  FlatList,
+} from "react-native";
+
+import Colors from "../definitions/Colors";
+
+const CrewMember = ({ firstName, lastName }) => {
+  return (
+    <View>
+      <Text>
+        Membre d'équipage {firstName} {lastName} au rapport!
+      </Text>
+    </View>
+  );
+};
+
+CrewMember.propTypes = {
+  firstName: PropTypes.string,
+  lastName: PropTypes.string,
+};
+
+const Test = () => {
+  const [crews, setCrews] = useState([]);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  const addCrewMember = () => {
+    if (firstName && lastName) {
+      setCrews([
+        ...crews,
+        { id: Date.now().toString(), firstName: firstName, lastName: lastName },
+      ]);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Nouvelle recrue</Text>
+        <TextInput
+          placeholder="Entrez votre nom"
+          style={styles.form}
+          onChangeText={(text) => setLastName(text)}
+        />
+        <TextInput
+          placeholder="Entrez votre prénom"
+          style={[styles.form, { marginBottom: 12 }]}
+          onChangeText={(text) => setFirstName(text)}
+        />
+        <Button
+          title="Ajouter"
+          color={Colors.primary_blue}
+          onPress={addCrewMember}
+        />
+      </View>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>
+          Composition de l'équipage ({crews.length})
+        </Text>
+        <FlatList
+          data={crews}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <CrewMember firstName={item.firstName} lastName={item.lastName} />
+          )}
+        />
+      </View>
+    </View>
+  );
+};
+
+export default Test;
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 12,
+  },
+  subContainer: {
+    paddingVertical: 16,
+  },
+  title: {
+    alignSelf: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  form: {
+    marginBottom: 8,
+  },
+});
+
 ```
 
 </details>
 <br>
+
+### Créer la liste des films
+
+Nous pouvons maintenant reprendre notre application de film et appliquer ce que nous avons vu (props, state et liste) dans le composant _Search_. Pour le moment nous allons utiliser un fichier local contenant les données; par la suite nous les récupèrerons d'une API. Créez le fichier _src/helpers/filmsData.js_ et récupérez le contenu.
+
+Essayez d'afficher cette liste de films dans le composant Search. Vous devez obtenir le résultat suivant:
+
+<img src="imgs/search2.png" height="400" />
+
+Procédez en 2 étapes:
+
+- Mettez en place la liste pour afficher le bon nombre d'objets _FilmListItem_.
+- Modifiez le composant _FilmListItem_ pour lui passer ses props afin d'afficher le contenu du fichier _filmsData_. C'est en effet _Search_ qui connait les données.
+
+<details>
+<summary>Correction</summary>
+
+```
+//Search.js
+```
+
+```
+//FilmListItem.js
+```
+
+</details>

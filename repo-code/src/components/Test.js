@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { View, TextInput, Text, Button, StyleSheet } from "react-native";
+import {
+  View,
+  TextInput,
+  Text,
+  Button,
+  StyleSheet,
+  FlatList,
+} from "react-native";
 
 import Colors from "../definitions/Colors";
 
@@ -20,28 +27,50 @@ CrewMember.propTypes = {
 };
 
 const Test = () => {
-  const [crewSize, setCrewSize] = useState(0);
+  const [crews, setCrews] = useState([]);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  const addCrewMember = () => {
+    if (firstName && lastName) {
+      setCrews([
+        ...crews,
+        { id: Date.now().toString(), firstName: firstName, lastName: lastName },
+      ]);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.subContainer}>
         <Text style={styles.title}>Nouvelle recrue</Text>
-        <TextInput placeholder="Entrez votre nom" style={styles.form} />
+        <TextInput
+          placeholder="Entrez votre nom"
+          style={styles.form}
+          onChangeText={(text) => setLastName(text)}
+        />
         <TextInput
           placeholder="Entrez votre prénom"
           style={[styles.form, { marginBottom: 12 }]}
+          onChangeText={(text) => setFirstName(text)}
         />
         <Button
           title="Ajouter"
           color={Colors.primary_blue}
-          onPress={() => {
-            setCrewSize(crewSize + 1);
-          }}
+          onPress={addCrewMember}
         />
       </View>
       <View style={styles.subContainer}>
-        <Text style={styles.title}>Composition de l'équipage ({crewSize})</Text>
-        <CrewMember firstName="John" lastName="Doe" />
+        <Text style={styles.title}>
+          Composition de l'équipage ({crews.length})
+        </Text>
+        <FlatList
+          data={crews}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <CrewMember firstName={item.firstName} lastName={item.lastName} />
+          )}
+        />
       </View>
     </View>
   );
