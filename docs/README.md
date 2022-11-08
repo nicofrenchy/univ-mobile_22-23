@@ -516,7 +516,124 @@ Créez un composant _Test2.js_ et affichez le résultat çi-dessous. Pensez à v
 
 ```
 //Test2.js
+
+import React from "react";
+import { View, StyleSheet } from "react-native";
+
+const Test2 = () => {
+  return (
+    <View style={styles.mainView}>
+      <View style={styles.topView}>
+        <View style={styles.topSecondaryFirstView}>
+          <View style={styles.topBoxViews} />
+          <View style={styles.topBoxViews} />
+        </View>
+        <View style={styles.topSecondarySecView}>
+          <View style={styles.topBoxViews} />
+        </View>
+        <View style={styles.topSecondaryThirdView}>
+          <View style={{ flex: 4 }} />
+          <View style={{ flex: 1, backgroundColor: "gold" }} />
+        </View>
+      </View>
+
+      <View style={styles.bottomView}>
+        <View style={styles.bottomSecondaryViews} />
+        <View style={styles.bottomSecondaryViews}>
+          <View style={styles.bottomThirdViews} />
+          <View
+            style={[styles.bottomThirdViews, { backgroundColor: "gold" }]}
+          />
+          <View style={styles.bottomThirdViews} />
+        </View>
+        <View style={styles.bottomSecondaryViews} />
+      </View>
+    </View>
+  );
+};
+
+export default Test2;
+
+const styles = StyleSheet.create({
+  mainView: { flex: 1 },
+  topView: {
+    flex: 2,
+    flexDirection: "row",
+  },
+  topSecondaryFirstView: {
+    flex: 2,
+    backgroundColor: "dodgerblue",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  topSecondarySecView: {
+    flex: 1,
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  topSecondaryThirdView: {
+    flex: 1,
+    backgroundColor: "red",
+    justifyContent: "flex-end",
+  },
+  topBoxViews: {
+    height: 50,
+    width: 50,
+    backgroundColor: "gold",
+  },
+  bottomView: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  bottomSecondaryViews: {
+    flex: 1,
+    backgroundColor: "skyblue",
+  },
+  bottomThirdViews: {
+    flex: 1,
+    backgroundColor: "skyblue",
+  },
+});
+
 ```
 
 </details>
 <br>
+
+## Liste d'aperçu des films
+
+### Exercice: composant pour afficher l'aperçu d'un film
+
+Vous allez mettre en application ce que vous avez vu pour construire le composant qui affiche quelques informations sur un film. Créez un nouveau composant _FilmListItem_ avec comme rendu:
+
+<img src="imgs/FilmListItem1.png" height="400" />
+
+Quelques infos pour vous guider:
+
+- taille de l'affiche du film: 120 / 180; borderRadius: 8
+- taille de l'icône: 20 / 20
+- taille de la police du nom du film: 24; overview: 16; note: 16; nombre de votes: 14
+- numberOfLines={ 4 } pour l'overview permet de forcer le texte à s'afficher sur 4 lignes maximum et sera coupé avec "..." si plus long
+
+Pour les icônes et le poster du film, utilisez le composant _Image_ de react. Pour charger l'élément à afficher, le composant demande une propriété _source_ (le chemin); dans le cas du poster ne l'utilisez pas pour le moment. Pour les icônes, créez un fichier _src/definitions/Assets.js_ pour en centraliser la gestion:
+
+```
+//Asset.js
+import icon_voteAverage from "../../assets/voteAverage.png";
+const Assets = {
+  icons: {
+    voteAverage: icon_voteAverage,
+  },
+};
+export default Assets;
+```
+
+<details>
+<summary>Correction</summary>
+
+```
+//FilmListItem.js
+```
+
+</details>
