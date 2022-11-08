@@ -916,6 +916,135 @@ Nous voulons à terme afficher le nombre de membres d'équipage. Pour l'instant,
 
 ```
 //Test.js
+
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import { View, TextInput, Text, Button, StyleSheet } from "react-native";
+
+import Colors from "../definitions/Colors";
+
+const CrewMember = ({ firstName, lastName }) => {
+  return (
+    <View>
+      <Text>
+        Membre d'équipage {firstName} {lastName} au rapport!
+      </Text>
+    </View>
+  );
+};
+
+CrewMember.propTypes = {
+  firstName: PropTypes.string,
+  lastName: PropTypes.string,
+};
+
+const Test = () => {
+  const [crewSize, setCrewSize] = useState(0);
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Nouvelle recrue</Text>
+        <TextInput placeholder="Entrez votre nom" style={styles.form} />
+        <TextInput
+          placeholder="Entrez votre prénom"
+          style={[styles.form, { marginBottom: 12 }]}
+        />
+        <Button
+          title="Ajouter"
+          color={Colors.primary_blue}
+          onPress={() => {
+            setCrewSize(crewSize + 1);
+          }}
+        />
+      </View>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Composition de l'équipage ({crewSize})</Text>
+        <CrewMember firstName="John" lastName="Doe" />
+      </View>
+    </View>
+  );
+};
+
+export default Test;
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 12,
+  },
+  subContainer: {
+    paddingVertical: 16,
+  },
+  title: {
+    alignSelf: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  form: {
+    marginBottom: 8,
+  },
+});
+
+
 ```
 
 </details>
+<br>
+
+### Les listes (FlatList)
+
+Rappel: 3 props à passer au minimum au composant FlatList
+
+- data: le tableau de données (1 élément = 1 entrée dans la liste)
+- keyExtractor: une fonction qui retourne la propriété à utiliser comme ID unique pour chaque élément de la liste
+- renderItem: une fonction qui retourne un composant pour afficher chaque élément de la liste
+
+Exemple:
+
+```
+const DATA = [
+  { id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
+    title: 'First Item'},
+  { id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
+    title: 'Second Item'},
+  { id: '58694a0f-3da1-471f-bd96-145571e29d72',
+    title: 'Third Item'},
+];
+const Item = ({ title }) => (
+  <View style={styles.item}>
+    <Text style={styles.title}>{title}</Text>
+  </View>
+);
+const App = () => {
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={DATA}
+        renderItem={ ({ item }) => <Item title={item.title}/> }
+        keyExtractor={item => item.id}
+      />
+    </View>
+  );
+}
+```
+
+### Exercice: la liste des membres d'équipage
+
+Vous avez maintenant tous les éléments nécessaires pour connecter les élements et gérer la liste des membres d'équipage. Lors d'un clique sur le bouton _Ajouter_, si les deux champs du formulaire sont renseignés, un nouveau membre est ajouté à la liste. Pensez également à gérer de la bonne manière l'affichage du nombre de personnes dans l'équipage.  
+N'hésitez pas à regarder la documentation des composants pour vous aider. Pour l'ID, générez un string unique avec _Date.now().toString()_.
+
+Rendu attendu:
+
+<img src="imgs/test6.png" height="400" />
+<br>
+
+<details>
+<summary>Correction</summary>
+
+```
+//Test.js
+```
+
+</details>
+<br>

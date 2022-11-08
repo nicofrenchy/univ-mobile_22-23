@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { View, TextInput, Text, Button, StyleSheet } from "react-native";
 
@@ -20,6 +20,8 @@ CrewMember.propTypes = {
 };
 
 const Test = () => {
+  const [crewSize, setCrewSize] = useState(0);
+
   return (
     <View style={styles.container}>
       <View style={styles.subContainer}>
@@ -32,11 +34,13 @@ const Test = () => {
         <Button
           title="Ajouter"
           color={Colors.primary_blue}
-          onPress={() => {}}
+          onPress={() => {
+            setCrewSize(crewSize + 1);
+          }}
         />
       </View>
       <View style={styles.subContainer}>
-        <Text style={styles.title}>Composition de l'équipage</Text>
+        <Text style={styles.title}>Composition de l'équipage ({crewSize})</Text>
         <CrewMember firstName="John" lastName="Doe" />
       </View>
     </View>
