@@ -1,31 +1,41 @@
 import React from "react";
 import { View, StyleSheet, Image, Text } from "react-native";
+import PropTypes from "prop-types";
 
 import Assets from "../definitions/Assets";
 import Colors from "../definitions/Colors";
 
-const FilmListItem = () => (
+const FilmListItem = ({
+  filmData: { original_title, overview, vote_average, vote_count },
+}) => (
   <View style={styles.container}>
     <Image style={styles.poster} />
     <View style={styles.informationContainer}>
-      <Text style={styles.title}>The Batman</Text>
+      <Text style={styles.title}>{original_title}</Text>
       <Text style={styles.overview} numberOfLines={4}>
-        In his second year of fighting crime, Batman uncovers corruption in
-        Gotham City that connects to his own family while facing a serial killer
-        known as the Riddler.
+        {overview}
       </Text>
       <View style={styles.statsContainer}>
         <View style={styles.statContainer}>
           <Image style={styles.icon} source={Assets.icons.voteAverage} />
-          <Text style={styles.voteAverage}>9.12</Text>
+          <Text style={styles.voteAverage}>{vote_average}</Text>
         </View>
         <View style={styles.statContainer}>
-          <Text style={styles.voteCount}>1876 votes</Text>
+          <Text style={styles.voteCount}>{vote_count}</Text>
         </View>
       </View>
     </View>
   </View>
 );
+
+FilmListItem.propTypes = {
+  filmData: PropTypes.shape({
+    original_title: PropTypes.string,
+    overview: PropTypes.string,
+    vote_average: PropTypes.number,
+    vote_count: PropTypes.number,
+  }).isRequired,
+};
 
 export default FilmListItem;
 

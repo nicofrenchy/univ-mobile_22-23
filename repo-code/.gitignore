@@ -10,5 +10,7 @@ npm-debug.*
 *.orig.*
 web-build/
 
+src/api/config.js
+
 # macOS
 .DS_Store

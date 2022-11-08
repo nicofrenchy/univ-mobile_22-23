@@ -1166,10 +1166,228 @@ Procédez en 2 étapes:
 
 ```
 //Search.js
+
+import React, { useState } from "react";
+import { View, TextInput, Button, StyleSheet, FlatList } from "react-native";
+
+import FilmListItem from "../components/FilmListItem";
+
+import Colors from "../definitions/Colors";
+import filmsData from "../helpers/filmsData";
+
+const Search = () => {
+  const [films, setFilms] = useState(filmsData.results);
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Terme à chercher"
+          style={styles.inputSearchTerm}
+        />
+        <Button
+          title="Rechercher"
+          color={Colors.primary_blue}
+          onPress={() => {
+            console.log(films.length);
+          }}
+        />
+      </View>
+      <FlatList
+        data={films}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <FilmListItem filmData={item} />}
+      />
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
+
+
 ```
 
 ```
 //FilmListItem.js
+
+import React from "react";
+import { View, StyleSheet, Image, Text } from "react-native";
+import PropTypes from "prop-types";
+
+import Assets from "../definitions/Assets";
+import Colors from "../definitions/Colors";
+
+const FilmListItem = ({
+  filmData: { original_title, overview, vote_average, vote_count },
+}) => (
+  <View style={styles.container}>
+    <Image style={styles.poster} />
+    <View style={styles.informationContainer}>
+      <Text style={styles.title}>{original_title}</Text>
+      <Text style={styles.overview} numberOfLines={4}>
+        {overview}
+      </Text>
+      <View style={styles.statsContainer}>
+        <View style={styles.statContainer}>
+          <Image style={styles.icon} source={Assets.icons.voteAverage} />
+          <Text style={styles.voteAverage}>{vote_average}</Text>
+        </View>
+        <View style={styles.statContainer}>
+          <Text style={styles.voteCount}>{vote_count}</Text>
+        </View>
+      </View>
+    </View>
+  </View>
+);
+
+FilmListItem.propTypes = {
+  filmData: PropTypes.shape({
+    original_title: PropTypes.string,
+    overview: PropTypes.string,
+    vote_average: PropTypes.number,
+    vote_count: PropTypes.number,
+  }).isRequired,
+};
+
+export default FilmListItem;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    paddingVertical: 8,
+  },
+  informationContainer: {
+    flex: 1,
+    marginLeft: 12,
+    marginTop: 8,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    marginTop: 12,
+  },
+  statContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  poster: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: Colors.primary_blue,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  voteAverage: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.primary_blue,
+  },
+  voteCount: {
+    fontSize: 14,
+    alignSelf: "flex-end",
+    fontStyle: "italic",
+  },
+  overview: {
+    fontSize: 16,
+  },
+  icon: {
+    tintColor: Colors.primary_blue,
+    width: 20,
+    height: 20,
+    marginRight: 4,
+  },
+});
+
+
+```
+
+</details>
+
+### Requêtes internet (fetch)
+
+Rappel sur la forme d'une requête en utilisant fetch:
+
+```
+//Déclaration
+const getMoviesFromApiAsync = async () => {
+  try {
+    const response = await fetch('https://reactnative.dev/movies.json');
+    const json = await response.json();
+    return json.movies;
+  } catch (error) {
+    console.error(error);
+  }
+};
+//Utilisation
+export default App = () => {
+  const [data, setData] = useState([]);
+  const loadData = async () => {
+    const res = await getMoviesFromApiAsync();
+    setData(res);
+    console.log(res);
+  }
+  return (
+    <View style={{ flex: 1, padding: 24 }}>
+      <Button
+        title="load"
+        onPress={loadData}/>
+      <FlatList
+        data={data}
+        keyExtractor={({ id }, index) => id}
+        renderItem={({ item }) => (
+          <Text>{item.title}, {item.releaseYear}</Text>) }
+        />
+    </View>
+  );
+};
+```
+
+Fetch permet de gérer de nombreux paramètres pour les requêtes (méthode, headers, etc...) en fonction des besoins.  
+N'oubliez pas que:
+
+- Fetch est asynchrone. Pensez à attendre le retour de la fonction (utilisation des mots clés _await/async_)
+- Pour traiter la réponse, il est plus simple de convertir en format JSON
+- Pensez à mettre le tout dans un _try/catch_ et gérez les erreurs
+
+### Récupérer les films depuis l'API TMDB
+
+Afin d'avoir plus de résultats et de ne plus charger uniquement les films du fichier local, nous allons utiliser l'api [The Movie Database](https://developers.themoviedb.org/3/getting-started).
+
+A l'aide de la documentation, construisez la requête pour faire une recherche sur les films (SEARCH/MOVIE). Une bonne pratique est de centraliser les fonctions pour appeler une api dans un fichier dédié; créez le fichier _src/api/TMDB.js_ pour cela.  
+Pensez à regarder comment vous authentifier auprès de l'api.
+
+Une fois cela en place, utilisez la requête dans le composant Search.js. Après un appui sur le bouton, interrogez la base de données en prenant en compte le terme entré par l'utilisateur et affichez les résultats dans la liste. Pour l'instant, vous n'aurez que 20 résultats.  
+Vous devriez obtenir un résultat similaire:
+
+<img src="imgs/search3.png" height="400" />
+<br>
+
+<details>
+<summary>Correction</summary>
+
+```
+//TMDB.js
+```
+
+```
+//Search.js
 ```
 
 </details>
