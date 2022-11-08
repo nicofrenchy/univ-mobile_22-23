@@ -772,7 +772,7 @@ Cat.propTypes = {
 };
 ```
 
-### Exercice : utiliser des props dans le formulaire de test
+### Exercice: utiliser des props dans le formulaire de test
 
 Dans la page de test _Test.js_, créez un nouveau composant _CrewMember_ (oui, j'ai conseillé de toujours avoir 1 fichier = 1 composant, j'admets ne pas toujours suivre mes propres règles). Ce dernier va nous servir à afficher le nom et le prénom d'un membre d'équipage. Pour le moment, pas d'interraction entre les champs de saisie du composant _Test_ et de ce nouveau composant (passez simplement le nom et le prénom comme propriété):
 
@@ -799,7 +799,123 @@ Résultat attendu :
 
 ```
 //Test.js
+
+import React from "react";
+import PropTypes from "prop-types";
+import { View, TextInput, Text, Button, StyleSheet } from "react-native";
+
+import Colors from "../definitions/Colors";
+
+const CrewMember = ({ firstName, lastName }) => {
+  return (
+    <View>
+      <Text>
+        Membre d'équipage {firstName} {lastName} au rapport!
+      </Text>
+    </View>
+  );
+};
+
+CrewMember.propTypes = {
+  firstName: PropTypes.string,
+  lastName: PropTypes.string,
+};
+
+const Test = () => {
+  return (
+    <View style={styles.container}>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Nouvelle recrue</Text>
+        <TextInput placeholder="Entrez votre nom" style={styles.form} />
+        <TextInput
+          placeholder="Entrez votre prénom"
+          style={[styles.form, { marginBottom: 12 }]}
+        />
+        <Button
+          title="Ajouter"
+          color={Colors.primary_blue}
+          onPress={() => {}}
+        />
+      </View>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Composition de l'équipage</Text>
+        <CrewMember firstName="John" lastName="Doe" />
+      </View>
+    </View>
+  );
+};
+
+export default Test;
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 12,
+  },
+  subContainer: {
+    paddingVertical: 16,
+  },
+  title: {
+    alignSelf: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  form: {
+    marginBottom: 8,
+  },
+});
+
+
 ```
 
 </details>
 <br>
+
+### Le state des composants
+
+Rappel: le state représente la "base de données" du composant. Lorsque le state change, le composant va se mettre à jour et forcer un refresh de son interface. **Modifier le state est une opération asynchrone.**  
+Utilisation du Hook _useState_ sous la forme:  
+const [**Variable**, **Modificateur**] = useState(_ValeurParDéfaut_);
+
+Exemple:
+
+```
+import React, { useState } from "react";
+import { Button, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Button, Text, View } from "react-native";
+const Test = () => {
+  const [name, setName] = useState("Paul");
+  const changeName = () => {
+    console.log("Current name is : " + name);
+    setName("Jean");
+    console.log("New name is : " + name);
+  }
+  return (
+    <View>
+      <Text>
+        I am {name}
+      </Text>
+      <Button
+        title="No, your name is Jean !"
+        onPress={changeName}/>
+    </View>
+  );
+}
+```
+
+### Exercice: utiliser le state dans le formulaire de test
+
+Nous voulons à terme afficher le nombre de membres d'équipage. Pour l'instant, il s'agit du nombre de fois ou le boutton "Ajouter" a été appuyé. Résultat attendu:
+
+<img src="imgs/test5.png" height="400" />
+<br>
+
+<details>
+<summary>Correction</summary>
+
+```
+//Test.js
+```
+
+</details>

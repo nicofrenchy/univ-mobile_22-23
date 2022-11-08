@@ -1,7 +1,23 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { View, TextInput, Text, Button, StyleSheet } from "react-native";
 
 import Colors from "../definitions/Colors";
+
+const CrewMember = ({ firstName, lastName }) => {
+  return (
+    <View>
+      <Text>
+        Membre d'équipage {firstName} {lastName} au rapport!
+      </Text>
+    </View>
+  );
+};
+
+CrewMember.propTypes = {
+  firstName: PropTypes.string,
+  lastName: PropTypes.string,
+};
 
 const Test = () => {
   return (
@@ -21,6 +37,7 @@ const Test = () => {
       </View>
       <View style={styles.subContainer}>
         <Text style={styles.title}>Composition de l'équipage</Text>
+        <CrewMember firstName="John" lastName="Doe" />
       </View>
     </View>
   );
