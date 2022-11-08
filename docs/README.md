@@ -634,6 +634,172 @@ export default Assets;
 
 ```
 //FilmListItem.js
+
+import React from "react";
+import { View, StyleSheet, Image, Text } from "react-native";
+
+import Assets from "../definitions/Assets";
+import Colors from "../definitions/Colors";
+
+const FilmListItem = () => (
+  <View style={styles.container}>
+    <Image style={styles.poster} />
+    <View style={styles.informationContainer}>
+      <Text style={styles.title}>The Batman</Text>
+      <Text style={styles.overview} numberOfLines={4}>
+        In his second year of fighting crime, Batman uncovers corruption in
+        Gotham City that connects to his own family while facing a serial killer
+        known as the Riddler.
+      </Text>
+      <View style={styles.statsContainer}>
+        <View style={styles.statContainer}>
+          <Image style={styles.icon} source={Assets.icons.voteAverage} />
+          <Text style={styles.voteAverage}>9.12</Text>
+        </View>
+        <View style={styles.statContainer}>
+          <Text style={styles.voteCount}>1876 votes</Text>
+        </View>
+      </View>
+    </View>
+  </View>
+);
+
+export default FilmListItem;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    paddingVertical: 8,
+  },
+  informationContainer: {
+    flex: 1,
+    marginLeft: 12,
+    marginTop: 8,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    marginTop: 12,
+  },
+  statContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  poster: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: Colors.primary_blue,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  voteAverage: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.primary_blue,
+  },
+  voteCount: {
+    fontSize: 14,
+    alignSelf: "flex-end",
+    fontStyle: "italic",
+  },
+  overview: {
+    fontSize: 16,
+  },
+  icon: {
+    tintColor: Colors.primary_blue,
+    width: 20,
+    height: 20,
+    marginRight: 4,
+  },
+});
+
+
 ```
 
 </details>
+<br>
+
+### Les propriétés (props) des composants
+
+Rappel: le _destructuring_ permet de déclarer la liste des propriétés attendues dans le composant et d'assigner le contenu dans une variable:
+
+```
+const Cat = ({name}) => {
+  return (
+    <View>
+      <Text>
+        Je suis {name}!
+      </Text>
+    </View>
+  );
+}
+const App = () => {
+  return (
+    <View>
+      <Cat name="Kiki"/>
+    </View>
+  );
+}
+```
+
+Il est également possible de mettre une valeur par défaut à la propriété:
+
+```
+const Cat = ({name="Chichi"}) => {
+  ...
+const App = () => {
+  return (
+    <View>
+      <Cat />
+    </View>
+  );
+}
+```
+
+Il est conseillé de déclarer le type des propriétés attendu pour chaque composant, si la propriété est obligatoire ou non... Des extensions connues de JS comme TypeScript peuvent être utilisées. React possède également sa solution avec **PropTypes**:
+
+```
+//A ajouter au projet avec la commande npm install --save prop-types
+import PropTypes from "prop-types";
+const Cat = ({name}) => {
+  ...
+}
+Cat.propTypes = {
+  name: PropTypes.string,
+};
+```
+
+### Exercice : utiliser des props dans le formulaire de test
+
+Dans la page de test _Test.js_, créez un nouveau composant _CrewMember_ (oui, j'ai conseillé de toujours avoir 1 fichier = 1 composant, j'admets ne pas toujours suivre mes propres règles). Ce dernier va nous servir à afficher le nom et le prénom d'un membre d'équipage. Pour le moment, pas d'interraction entre les champs de saisie du composant _Test_ et de ce nouveau composant (passez simplement le nom et le prénom comme propriété):
+
+```
+//Test.js
+const CrewMember = ... {
+  ...
+};
+const Test = ...
+  <Text style={styles.title}>
+    Composition de l'équipage
+  </Text>
+  <CrewMember firstName="John" lastName="Doe" />
+...
+```
+
+Résultat attendu :
+
+<img src="imgs/test4.png" height="400" />
+<br>
+
+<details>
+<summary>Correction</summary>
+
+```
+//Test.js
+```
+
+</details>
+<br>
