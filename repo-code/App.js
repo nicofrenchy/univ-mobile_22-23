@@ -7,7 +7,7 @@ import Test from "./src/components/Test";
 export default function App() {
   return (
     <View style={styles.container}>
-      <Search />
+      <Test />
       <StatusBar style="auto" />
     </View>
   );

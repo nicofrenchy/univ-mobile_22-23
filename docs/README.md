@@ -292,7 +292,7 @@ export default Test;
 </details>
 <br>
 
-## Ajouter des styles
+## Maitriser le style
 
 Les styles permettent de contrôler le rendu graphique des composants. Première approche pour ajouter des styles:
 
@@ -449,6 +449,73 @@ Reprenez le composant _Test.js_ et affichez le résultat suivant:
 
 ```
 //Test.js
+import React from "react";
+import { View, TextInput, Text, Button, StyleSheet } from "react-native";
+
+import Colors from "../definitions/Colors";
+
+const Test = () => {
+  return (
+    <View style={styles.container}>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Nouvelle recrue</Text>
+        <TextInput placeholder="Entrez votre nom" style={styles.form} />
+        <TextInput
+          placeholder="Entrez votre prénom"
+          style={[styles.form, { marginBottom: 12 }]}
+        />
+        <Button
+          title="Ajouter"
+          color={Colors.primary_blue}
+          onPress={() => {}}
+        />
+      </View>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Composition de l'équipage</Text>
+      </View>
+    </View>
+  );
+};
+
+export default Test;
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 12,
+  },
+  subContainer: {
+    paddingVertical: 16,
+  },
+  title: {
+    alignSelf: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  form: {
+    marginBottom: 8,
+  },
+});
+
+```
+
+</details>
+<br>
+
+### Exercice: Flexbox
+
+Rappel: Flexbox sert à définir le comportement des composants pour gérer leur taille. C'est nottamment utile pour ajouter une dimension dynamique à l'espace pris par chacun des éléments de l'interface graphique.  
+La documentation de Flexbox est [disponible ici.](https://reactnative.dev/docs/flexbox)
+
+Créez un composant _Test2.js_ et affichez le résultat çi-dessous. Pensez à visualiser le squelette de l'écran, les _boîtes dans les boîtes_.
+
+<img src="imgs/test3.png" height="400" />
+
+<details>
+<summary>Correction</summary>
+
+```
+//Test2.js
 ```
 
 </details>
