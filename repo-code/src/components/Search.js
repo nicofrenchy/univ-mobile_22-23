@@ -1,7 +1,15 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet, FlatList } from "react-native";
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  FlatList,
+  Keyboard,
+} from "react-native";
 
 import FilmListItem from "../components/FilmListItem";
+import DisplayError from "./DisplayError";
 
 import Colors from "../definitions/Colors";
 import { searchMovie } from "../api/TMDB";
@@ -11,8 +19,12 @@ const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isMorePages, setIsMorePages] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   const searchFilms = async (currentFilms, pageToRequest) => {
+    setIsRefreshing(true);
+    setIsError(false);
     console.log(
       "Search Movies; previously " +
         currentFilms.length +
@@ -29,10 +41,17 @@ const Search = () => {
       TMDBSearchMovieResult.page == TMDBSearchMovieResult.total_pages
         ? setIsMorePages(false)
         : setIsMorePages(true);
-    } catch (error) {}
+    } catch (error) {
+      setIsError(true);
+      setFilms([]);
+      setIsMorePages(true);
+      setCurrentPage(1);
+    }
+    setIsRefreshing(false);
   };
 
   const newSearchFilms = () => {
+    Keyboard.dismiss();
     searchFilms([], 1);
   };
 
@@ -49,6 +68,7 @@ const Search = () => {
           placeholder="Terme à chercher"
           style={styles.inputSearchTerm}
           onChangeText={(text) => setSearchTerm(text)}
+          onSubmitEditing={newSearchFilms}
         />
         <Button
           title="Rechercher"
@@ -56,13 +76,19 @@ const Search = () => {
           onPress={newSearchFilms}
         />
       </View>
-      <FlatList
-        data={films}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <FilmListItem filmData={item} />}
-        onEndReached={loadMoreFilms}
-        onEndReachedThreshold={0.5}
-      />
+      {isError ? (
+        <DisplayError message="Impossible de récupérer les films" />
+      ) : (
+        <FlatList
+          data={films}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => <FilmListItem filmData={item} />}
+          onEndReached={loadMoreFilms}
+          onEndReachedThreshold={0.5}
+          refreshing={isRefreshing}
+          onRefresh={newSearchFilms}
+        />
+      )}
     </View>
   );
 };

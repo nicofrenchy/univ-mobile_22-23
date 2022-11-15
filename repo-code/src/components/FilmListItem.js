@@ -6,27 +6,45 @@ import Assets from "../definitions/Assets";
 import Colors from "../definitions/Colors";
 
 const FilmListItem = ({
-  filmData: { original_title, overview, vote_average, vote_count },
-}) => (
-  <View style={styles.container}>
-    <Image style={styles.poster} />
-    <View style={styles.informationContainer}>
-      <Text style={styles.title}>{original_title}</Text>
-      <Text style={styles.overview} numberOfLines={4}>
-        {overview}
-      </Text>
-      <View style={styles.statsContainer}>
-        <View style={styles.statContainer}>
-          <Image style={styles.icon} source={Assets.icons.voteAverage} />
-          <Text style={styles.voteAverage}>{vote_average}</Text>
-        </View>
-        <View style={styles.statContainer}>
-          <Text style={styles.voteCount}>{vote_count}</Text>
+  filmData: { original_title, overview, vote_average, vote_count, poster_path },
+}) => {
+  const getPoster = () => {
+    if (poster_path) {
+      return (
+        <Image
+          style={styles.poster}
+          source={{ uri: `https://image.tmdb.org/t/p/w500/${poster_path}` }}
+        />
+      );
+    }
+    return (
+      <View style={styles.noPoster}>
+        <Image source={Assets.icons.missingIMG} />
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {getPoster()}
+      <View style={styles.informationContainer}>
+        <Text style={styles.title}>{original_title}</Text>
+        <Text style={styles.overview} numberOfLines={4}>
+          {overview}
+        </Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statContainer}>
+            <Image style={styles.icon} source={Assets.icons.voteAverage} />
+            <Text style={styles.voteAverage}>{vote_average}</Text>
+          </View>
+          <View style={styles.statContainer}>
+            <Text style={styles.voteCount}>{vote_count} votes</Text>
+          </View>
         </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
 FilmListItem.propTypes = {
   filmData: PropTypes.shape({
@@ -34,6 +52,7 @@ FilmListItem.propTypes = {
     overview: PropTypes.string,
     vote_average: PropTypes.number,
     vote_count: PropTypes.number,
+    poster_path: PropTypes.string,
   }).isRequired,
 };
 
@@ -63,6 +82,12 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 8,
     backgroundColor: Colors.primary_blue,
+  },
+  noPoster: {
+    width: 120,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 24,

@@ -1694,6 +1694,370 @@ Petite particularité: il est possible de ne pas avoir de poster. Il faut gérer
 <summary>Correction de tous les exercices</summary>
 
 ```
+//Search.js
+
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  FlatList,
+  Keyboard,
+} from "react-native";
+
+import FilmListItem from "../components/FilmListItem";
+import DisplayError from "./DisplayError";
+
+import Colors from "../definitions/Colors";
+import { searchMovie } from "../api/TMDB";
+
+const Search = () => {
+  const [films, setFilms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMorePages, setIsMorePages] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isError, setIsError] = useState(false);
+
+  const searchFilms = async (currentFilms, pageToRequest) => {
+    setIsRefreshing(true);
+    setIsError(false);
+    console.log(
+      "Search Movies; previously " +
+        currentFilms.length +
+        " films and will request page n° " +
+        pageToRequest
+    );
+    try {
+      const TMDBSearchMovieResult = await searchMovie(
+        searchTerm,
+        pageToRequest
+      );
+      setFilms([...currentFilms, ...TMDBSearchMovieResult.results]);
+      setCurrentPage(TMDBSearchMovieResult.page);
+      TMDBSearchMovieResult.page == TMDBSearchMovieResult.total_pages
+        ? setIsMorePages(false)
+        : setIsMorePages(true);
+    } catch (error) {
+      setIsError(true);
+      setFilms([]);
+      setIsMorePages(true);
+      setCurrentPage(1);
+    }
+    setIsRefreshing(false);
+  };
+
+  const newSearchFilms = () => {
+    Keyboard.dismiss();
+    searchFilms([], 1);
+  };
+
+  const loadMoreFilms = () => {
+    if (isMorePages) {
+      searchFilms(films, currentPage + 1);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Terme à chercher"
+          style={styles.inputSearchTerm}
+          onChangeText={(text) => setSearchTerm(text)}
+          onSubmitEditing={newSearchFilms}
+        />
+        <Button
+          title="Rechercher"
+          color={Colors.primary_blue}
+          onPress={newSearchFilms}
+        />
+      </View>
+      {isError ? (
+        <DisplayError message="Impossible de récupérer les films" />
+      ) : (
+        <FlatList
+          data={films}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => <FilmListItem filmData={item} />}
+          onEndReached={loadMoreFilms}
+          onEndReachedThreshold={0.5}
+          refreshing={isRefreshing}
+          onRefresh={newSearchFilms}
+        />
+      )}
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
+
+```
+
+```
+//Asset.js
+
+import icon_voteAverage from "../../assets/voteAverage.png";
+import icon_error from "../../assets/error.png";
+import icon_missingIMG from "../../assets/missingImage.png";
+
+const Assets = {
+  icons: {
+    voteAverage: icon_voteAverage,
+    error: icon_error,
+    missingIMG: icon_missingIMG,
+  },
+};
+
+export default Assets;
+
+```
+
+```
+//FilmListItem.js
+
+import React from "react";
+import { View, StyleSheet, Image, Text } from "react-native";
+import PropTypes from "prop-types";
+
+import Assets from "../definitions/Assets";
+import Colors from "../definitions/Colors";
+
+const FilmListItem = ({
+  filmData: { original_title, overview, vote_average, vote_count, poster_path },
+}) => {
+  const getPoster = () => {
+    if (poster_path) {
+      return (
+        <Image
+          style={styles.poster}
+          source={{ uri: `https://image.tmdb.org/t/p/w500/${poster_path}` }}
+        />
+      );
+    }
+    return (
+      <View style={styles.noPoster}>
+        <Image source={Assets.icons.missingIMG} />
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {getPoster()}
+      <View style={styles.informationContainer}>
+        <Text style={styles.title}>{original_title}</Text>
+        <Text style={styles.overview} numberOfLines={4}>
+          {overview}
+        </Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statContainer}>
+            <Image style={styles.icon} source={Assets.icons.voteAverage} />
+            <Text style={styles.voteAverage}>{vote_average}</Text>
+          </View>
+          <View style={styles.statContainer}>
+            <Text style={styles.voteCount}>{vote_count} votes</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+FilmListItem.propTypes = {
+  filmData: PropTypes.shape({
+    original_title: PropTypes.string,
+    overview: PropTypes.string,
+    vote_average: PropTypes.number,
+    vote_count: PropTypes.number,
+    poster_path: PropTypes.string,
+  }).isRequired,
+};
+
+export default FilmListItem;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    paddingVertical: 8,
+  },
+  informationContainer: {
+    flex: 1,
+    marginLeft: 12,
+    marginTop: 8,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    marginTop: 12,
+  },
+  statContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  poster: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: Colors.primary_blue,
+  },
+  noPoster: {
+    width: 120,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  voteAverage: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.primary_blue,
+  },
+  voteCount: {
+    fontSize: 14,
+    alignSelf: "flex-end",
+    fontStyle: "italic",
+  },
+  overview: {
+    fontSize: 16,
+  },
+  icon: {
+    tintColor: Colors.primary_blue,
+    width: 20,
+    height: 20,
+    marginRight: 4,
+  },
+});
+
+```
+
+```
+//DisplayError.js
+import React from "react";
+import { View, StyleSheet, Text, Image } from "react-native";
+
+import Assets from "../definitions/Assets";
+import Colors from "../definitions/Colors";
+
+const DisplayError = ({ message = "Une erreur c'est produite" }) => (
+  <View style={styles.container}>
+    <Image source={Assets.icons.error} style={styles.icon} />
+    <Text style={styles.errorText}>{message}</Text>
+  </View>
+);
+
+export default DisplayError;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  icon: {
+    tintColor: Colors.primary_blue,
+  },
+  errorText: {
+    fontSize: 16,
+  },
+});
+
+```
+
+</details>
+
+## Détails d'un film
+
+### React navigation
+
+Installation:
+
+```
+npm install @react-navigation/native
+expo install react-native-gesture-handler react-native-reanimated react-native-screens react-native-safe-area-context @react-native-community/masked-view
+npm install @react-navigation/stack
+```
+
+StackNavigator:
+
+```
+//Création
+const StackNavigator = createStackNavigator();
+function RootStack() {
+  return (
+    <StackNavigator.Navigator
+      initialRouteName="ScreenName1" >
+      <StackNavigator.Screen
+        name="ScreenName1"
+        component={Screen} />
+      ...
+    </StackNavigator.Navigator>
+  );
+}
+export default RootStack;
+//Utilisation
+export default function App() {
+  return (
+    <NavigationContainer>
+      <RootStack /> //composant importé
+      ...
+    </NavigationContainer>
+  );
+}
+```
+
+Navigation:
+
+```
+//Pour naviguer vers un autre écran, utilisez la props 'navigate'
+navigation.navigate('screenName', {
+  paramName: paramValue,
+  ...
+});
+//Pour récupérer les paramètres, utilisez la props 'route'
+const { paramName } = route.params;
+```
+
+### Naviguer de l'aperçu à la page du film
+
+Vous allez pouvoir mettre en place la première navigation de votre application. Lorsque l'utilisateur clique sur un élément de la liste, il doit ouvrir une nouvelle page (qui contiendra les détails du film). Pour vous aider, voici les étapes:
+
+- Créez un nouveau composant _Film.js_
+- Modifiez le composant _FilmListItem.js_ pour détecter un clique utilisateur (voir plus bas)
+- Mettez en place la structure de React Navigation
+- Reliez le tout pour avoir le comportement attendu
+
+<img src="imgs/navigation1.png" height="400" />
+<img src="imgs/navigation2.png" height="400" />
+
+La détection du clique sur un item d'une FlatList n'est pas natif. Voici comment réaliser cette partie:
+
+- Modifiez le composant _View_ par le composant _ToucheableOpacity_ dans _RestaurantListItem_
+- Passez depuis la liste du composant _Search_ la fonction permettant la navigation vers la page d'un film
+- Lorsque l'utilisateur clic sur la _ToucheableOpacity_, éxécutez la fonction pour naviguer
+
+<details>
+<summary>Correction</summary>
+
+```
 
 ```
 
