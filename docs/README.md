@@ -1508,6 +1508,192 @@ N'oubliez pas de:
 <summary>Correction</summary>
 
 ```
+//TMDB.js
+
+import { API_Bearer } from "./config";
+export async function searchMovie(searchTerm = "", page = 1) {
+  try {
+    const myHeaders = new Headers({
+      Authorization: API_Bearer,
+    });
+    const url = `https://api.themoviedb.org/3/search/movie?query=${searchTerm}&page=${page}`;
+    const response = await fetch(url, { headers: myHeaders });
+    const json = await response.json();
+    return json;
+  } catch (error) {
+    console.log(`Error with function TMBD/searchMovie: ${error.message}`);
+    throw error;
+  }
+}
+
+```
+
+```
+//Search.js
+
+import React, { useState } from "react";
+import { View, TextInput, Button, StyleSheet, FlatList } from "react-native";
+
+import FilmListItem from "../components/FilmListItem";
+
+import Colors from "../definitions/Colors";
+import { searchMovie } from "../api/TMDB";
+
+const Search = () => {
+  const [films, setFilms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMorePages, setIsMorePages] = useState(true);
+
+  const searchFilms = async (currentFilms, pageToRequest) => {
+    console.log(
+      "Search Movies; previously " +
+        currentFilms.length +
+        " films and will request page n° " +
+        pageToRequest
+    );
+    try {
+      const TMDBSearchMovieResult = await searchMovie(
+        searchTerm,
+        pageToRequest
+      );
+      setFilms([...currentFilms, ...TMDBSearchMovieResult.results]);
+      setCurrentPage(TMDBSearchMovieResult.page);
+      TMDBSearchMovieResult.page == TMDBSearchMovieResult.total_pages
+        ? setIsMorePages(false)
+        : setIsMorePages(true);
+    } catch (error) {}
+  };
+
+  const newSearchFilms = () => {
+    searchFilms([], 1);
+  };
+
+  const loadMoreFilms = () => {
+    if (isMorePages) {
+      searchFilms(films, currentPage + 1);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Terme à chercher"
+          style={styles.inputSearchTerm}
+          onChangeText={(text) => setSearchTerm(text)}
+        />
+        <Button
+          title="Rechercher"
+          color={Colors.primary_blue}
+          onPress={newSearchFilms}
+        />
+      </View>
+      <FlatList
+        data={films}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <FilmListItem filmData={item} />}
+        onEndReached={loadMoreFilms}
+        onEndReachedThreshold={0.5}
+      />
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
+
+```
+
+</details>
+
+### Ajout de quelques fonctionnalités
+
+#### Icône de chargement + pull to resfresh
+
+Le retour du call à l'API n'est pas instantané. Pendant ces quelques secondes, il ne se passe rien à l'écran: ce n'est pas une bonne expérience utilisateur. Il faut que la liste indique qu'elle attend de nouveaux résultats. Vous pouvez également ajouter une fonctionnalité de _pull to resfresh_.  
+La documentation de FlatList devrait vous aider.
+
+Commportement attendu:
+
+- Lors d'une requête à l'API, la liste affiche une icone de chargement
+- Si l'utilisateur utilise le _pull to refresh_, une nouvelle requête est émise, avec le même comportement que si l'utilisateur avait appuyé sur le bouton de recherche
+
+<img src="imgs/search5.png" height="400" />
+
+#### Affichage en cas d'erreur lors du call API
+
+Actuellement nous ne traitons pas les erreurs lors du call API. Le comportement attendu est le suivant:
+
+- Si pas d'erreur, comportement actuel
+- Si une erreur lors du call:
+  - remise à 0 des données
+  - la liste est remplacée par un autre composant affichant un message d'erreur
+
+Faite bien un composant séparé pour afficher l'erreur (_src/components/DisplayError.js_), pour qu'il puisse être réutilisé par la suite. Le mieux est même que ce composant prenne en props le message d'erreur à afficher. Pour tester le comportement, vous pouvez toujours retourner une erreur dans la fonction qui effectue la requête API.
+
+La seule chose que vous ne savez pour l'instant pas faire est l'affichage conditionnel dans le JSX. Voici un exemple:
+
+```
+{ isError ? (
+    // Afficher le composant erreur ici
+  ) : (
+    <FlatList
+      ...
+    />
+)}
+```
+
+Résultat attendu :
+
+<img src="imgs/error1.png" height="400" />
+
+#### Améliorer le clavier
+
+2 fonctionnalités à ajouter sur le clavier:
+
+- Lancer la recherche avec le bouton "OK"
+- Fermer le clavier lorsqu'une recherche est lancée
+
+#### Afficher l'image du film
+
+Chaque film renvoyé par TMDB contient un chemin pour récupérer le poster:
+
+```
+...
+"popularity": 228.777,
+"poster_path": "/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
+"release_date": "2019-04-24",
+...
+```
+
+A l'aide la documentation de l'API (pour récupérer le chemin complet) et de la documentation du composant _Image_, vous devriez pouvoir afficher le poster dans la liste de films.
+
+Petite particularité: il est possible de ne pas avoir de poster. Il faut gérer ce cas:
+
+- Si un poster existe, l'afficher
+- Sinon, afficher une icone pour le remplacer
+
+<img src="imgs/filmListItem2.png" height="400" />
+<br/>
+
+<details>
+<summary>Correction de tous les exercices</summary>
+
+```
 
 ```
 
