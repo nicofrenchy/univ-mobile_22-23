@@ -1384,10 +1384,131 @@ Vous devriez obtenir un résultat similaire:
 
 ```
 //TMDB.js
+
+import { API_Bearer } from "./config";
+export async function searchMovie(searchTerm = "") {
+  try {
+    const myHeaders = new Headers({
+      Authorization: API_Bearer,
+    });
+    const url = `https://api.themoviedb.org/3/search/movie?query=${searchTerm}`;
+    const response = await fetch(url, { headers: myHeaders });
+    const json = await response.json();
+    return json;
+  } catch (error) {
+    console.log(`Error with function TMBD/searchMovie: ${error.message}`);
+    throw error;
+  }
+}
+
 ```
 
 ```
 //Search.js
+
+import React, { useState } from "react";
+import { View, TextInput, Button, StyleSheet, FlatList } from "react-native";
+
+import FilmListItem from "../components/FilmListItem";
+
+import Colors from "../definitions/Colors";
+import filmsData from "../helpers/filmsData";
+import { searchMovie } from "../api/TMDB";
+
+const Search = () => {
+  const [films, setFilms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const searchFilms = async () => {
+    console.log("Search Movies");
+    try {
+      const TMDBSearchMovieResult = await searchMovie(searchTerm);
+      setFilms(TMDBSearchMovieResult.results);
+    } catch (error) {}
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Terme à chercher"
+          style={styles.inputSearchTerm}
+          onChangeText={(text) => setSearchTerm(text)}
+        />
+        <Button
+          title="Rechercher"
+          color={Colors.primary_blue}
+          onPress={searchFilms}
+        />
+      </View>
+      <FlatList
+        data={films}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <FilmListItem filmData={item} />}
+      />
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
+
+```
+
+</details>
+
+### Récupérer tous les résultats
+
+L'API envoi au maximum 20 résultats à chaque requête. Il faudrait que lorsque l'utilisateur scroll sur le bas de la liste, s'il reste des résultats à charger, l'application fasse une nouvelle requête à l'API.
+
+Première étape, regarder la documentation de l'API. Heureusement pour nous, la pagination est supportée nativement dans les réponses; vous n'aurez pas de mal à gérer cette partie.
+
+Seconde étape, détecter lorsque l'utilisateur arrive en bas de la liste pour charger d'avantage de résultats. La documentation de FlatList nous donne les deux infos suivantes:
+
+- **onEndReached** (function): call when the scroll position gets within onEndReachedThreshold of the rendered content
+- **onEndReachedThreshold** (number): How far from the end (in units of visible length of the list) the bottom edge of the list must be from the end of the content to trigger the onEndReached callback. Thus a value of 0.5 will trigger onEndReached when the end of the content is within half the visible length of the list
+
+Pour faire simple, la fonction définie dans la propriété _onEndReached_ sera appelée lorsque l'utilisateur sera à la fin de la liste - la taille d'écran définie dans _onEndReachedThreshold_ (en pratique, definissez cette valeur à 0.5).  
+Dans le code cela donne:
+
+```
+...
+_loadMoreFilms = () => {
+  console.log("End of the list");
+}
+...
+      <FlatList
+        ...
+        onEndReached={ _loadMoreFilms }
+        onEndReachedThreshold={ 0.5 }
+      />
+```
+
+N'oubliez pas de:
+
+- Stocker la/les variable(s) de pagination
+- Ne pas faire de requêtes inutiles (s'il n'y a plus de résultats à charger)
+- Initialiser / réinitialiser la/les variable(s) à chaque nouvelle recherche
+- Ajouter les nouveaux résultats à la liste de films existante ou effacer les précédents films
+
+<details>
+<summary>Correction</summary>
+
+```
+
 ```
 
 </details>
