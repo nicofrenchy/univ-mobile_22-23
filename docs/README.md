@@ -2463,6 +2463,247 @@ Résultat attendu:
 <summary>Correction</summary>
 
 ```
+//TMDB.js
+
+import { API_Bearer } from "./config";
+
+export async function searchMovie(searchTerm = "", page = 1) {
+  try {
+    const myHeaders = new Headers({
+      Authorization: API_Bearer,
+    });
+    const url = `https://api.themoviedb.org/3/search/movie?query=${searchTerm}&page=${page}`;
+    const response = await fetch(url, { headers: myHeaders });
+    const json = await response.json();
+    return json;
+  } catch (error) {
+    console.log(`Error with function TMBD/searchMovie: ${error.message}`);
+    throw error;
+  }
+}
+
+export async function detailsMovie(movieID) {
+  try {
+    const myHeaders = new Headers({
+      Authorization: API_Bearer,
+    });
+    const url = `https://api.themoviedb.org/3/movie/${movieID}`;
+    const response = await fetch(url, { headers: myHeaders });
+    const json = await response.json();
+    return json;
+  } catch (error) {
+    console.log(`Error with function TMBD/detailsMovie: ${error.message}`);
+    throw error;
+  }
+}
+
+```
+
+```
+//Film.js
+
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
+
+import DisplayError from "../components/DisplayError";
+
+import { detailsMovie } from "../api/TMDB";
+
+const Film = ({ route }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [film, setFilm] = useState(null);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    requestFilm();
+  }, []); //Uniquement à l'initialisation
+
+  //Pourrait être directement déclarée dans useEffect
+  const requestFilm = async () => {
+    try {
+      const TMDBDetailsMovieResult = await detailsMovie(route.params.filmID);
+      setFilm(TMDBDetailsMovieResult);
+      setIsLoading(false);
+    } catch (error) {
+      setIsError(true);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {isError ? (
+        <DisplayError message="Impossible de récupérer les données du film" />
+      ) : isLoading ? (
+        <View style={styles.containerLoading}>
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        <Text>{film.original_title}</Text>
+      )}
+    </View>
+  );
+};
+
+export default Film;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  containerLoading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
+
+```
+
+```
+//Search.js
+
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  FlatList,
+  Keyboard,
+} from "react-native";
+
+import FilmListItem from "../components/FilmListItem";
+import DisplayError from "./DisplayError";
+
+import Colors from "../definitions/Colors";
+import { searchMovie } from "../api/TMDB";
+
+const Search = ({ navigation }) => {
+  const [films, setFilms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMorePages, setIsMorePages] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isError, setIsError] = useState(false);
+
+  const searchFilms = async (currentFilms, pageToRequest) => {
+    setIsRefreshing(true);
+    setIsError(false);
+    console.log(
+      "Search Movies; previously " +
+        currentFilms.length +
+        " films and will request page n° " +
+        pageToRequest
+    );
+    try {
+      const TMDBSearchMovieResult = await searchMovie(
+        searchTerm,
+        pageToRequest
+      );
+      setFilms([...currentFilms, ...TMDBSearchMovieResult.results]);
+      setCurrentPage(TMDBSearchMovieResult.page);
+      TMDBSearchMovieResult.page == TMDBSearchMovieResult.total_pages
+        ? setIsMorePages(false)
+        : setIsMorePages(true);
+    } catch (error) {
+      setIsError(true);
+      setFilms([]);
+      setIsMorePages(true);
+      setCurrentPage(1);
+    }
+    setIsRefreshing(false);
+  };
+
+  const newSearchFilms = () => {
+    Keyboard.dismiss();
+    searchFilms([], 1);
+  };
+
+  const loadMoreFilms = () => {
+    if (isMorePages) {
+      searchFilms(films, currentPage + 1);
+    }
+  };
+
+  const navigateFilmDetails = (filmID) => {
+    navigation.navigate("ViewFilm", { filmID });
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Terme à chercher"
+          style={styles.inputSearchTerm}
+          onChangeText={(text) => setSearchTerm(text)}
+          onSubmitEditing={newSearchFilms}
+        />
+        <Button
+          title="Rechercher"
+          color={Colors.primary_blue}
+          onPress={newSearchFilms}
+        />
+      </View>
+      {isError ? (
+        <DisplayError message="Impossible de récupérer les films" />
+      ) : (
+        <FlatList
+          data={films}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <FilmListItem
+              filmData={item}
+              onClick={() => {
+                navigateFilmDetails(item.id);
+              }}
+            />
+          )}
+          onEndReached={loadMoreFilms}
+          onEndReachedThreshold={0.5}
+          refreshing={isRefreshing}
+          onRefresh={newSearchFilms}
+        />
+      )}
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
+
+```
+
+</details>
+
+### Réalisation de l'interface
+
+Maintenant que la logique de navigation / récupération des données de la page du film est en place, il ne reste plus qu'à réaliser l'interface. Comme souvent, cette étape n'est pas la plus compliquée mais prend du temps: c'est un bon exercice pour appliquer ce que vous avez appris. Petites difficultés:
+
+- Comment afficher les sociétés de production ? Pas besoin d'utiliser un composant FlatList
+- Comment faire si le contenu ne tient pas sur un écran en hauteur ?
+
+Résultat attendu:
+
+<img src="imgs/film3.png" height="400" />
+<br/>
+
+<details>
+<summary>Correction</summary>
+
+```
 
 ```
 

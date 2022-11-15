@@ -61,8 +61,8 @@ const Search = ({ navigation }) => {
     }
   };
 
-  const navigateFilmDetails = () => {
-    navigation.navigate("ViewFilm");
+  const navigateFilmDetails = (filmID) => {
+    navigation.navigate("ViewFilm", { filmID });
   };
 
   return (
@@ -87,7 +87,12 @@ const Search = ({ navigation }) => {
           data={films}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <FilmListItem filmData={item} onClick={navigateFilmDetails} />
+            <FilmListItem
+              filmData={item}
+              onClick={() => {
+                navigateFilmDetails(item.id);
+              }}
+            />
           )}
           onEndReached={loadMoreFilms}
           onEndReachedThreshold={0.5}
