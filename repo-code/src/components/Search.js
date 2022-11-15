@@ -14,7 +14,7 @@ import DisplayError from "./DisplayError";
 import Colors from "../definitions/Colors";
 import { searchMovie } from "../api/TMDB";
 
-const Search = () => {
+const Search = ({ navigation }) => {
   const [films, setFilms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,6 +61,10 @@ const Search = () => {
     }
   };
 
+  const navigateFilmDetails = () => {
+    navigation.navigate("ViewFilm");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
@@ -82,7 +86,9 @@ const Search = () => {
         <FlatList
           data={films}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <FilmListItem filmData={item} />}
+          renderItem={({ item }) => (
+            <FilmListItem filmData={item} onClick={navigateFilmDetails} />
+          )}
           onEndReached={loadMoreFilms}
           onEndReachedThreshold={0.5}
           refreshing={isRefreshing}

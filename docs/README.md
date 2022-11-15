@@ -2058,6 +2058,411 @@ La détection du clique sur un item d'une FlatList n'est pas natif. Voici commen
 <summary>Correction</summary>
 
 ```
+//Film.js
+
+import React from "react";
+import { View, StyleSheet, Text } from "react-native";
+
+const Film = () => {
+  return (
+    <View style={styles.container}>
+      <Text>Component Film</Text>
+    </View>
+  );
+};
+
+export default Film;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+```
+
+```
+//FilmListItem.js
+
+import React from "react";
+import { View, StyleSheet, Image, Text, TouchableOpacity } from "react-native";
+import PropTypes from "prop-types";
+
+import Assets from "../definitions/Assets";
+import Colors from "../definitions/Colors";
+
+const FilmListItem = ({
+  filmData: { original_title, overview, vote_average, vote_count, poster_path },
+  onClick,
+}) => {
+  const getPoster = () => {
+    if (poster_path) {
+      return (
+        <Image
+          style={styles.poster}
+          source={{ uri: `https://image.tmdb.org/t/p/w500/${poster_path}` }}
+        />
+      );
+    }
+    return (
+      <View style={styles.noPoster}>
+        <Image source={Assets.icons.missingIMG} />
+      </View>
+    );
+  };
+
+  return (
+    <TouchableOpacity style={styles.container} onPress={onClick}>
+      {getPoster()}
+      <View style={styles.informationContainer}>
+        <Text style={styles.title}>{original_title}</Text>
+        <Text style={styles.overview} numberOfLines={4}>
+          {overview}
+        </Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statContainer}>
+            <Image style={styles.icon} source={Assets.icons.voteAverage} />
+            <Text style={styles.voteAverage}>{vote_average}</Text>
+          </View>
+          <View style={styles.statContainer}>
+            <Text style={styles.voteCount}>{vote_count} votes</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+FilmListItem.propTypes = {
+  filmData: PropTypes.shape({
+    original_title: PropTypes.string,
+    overview: PropTypes.string,
+    vote_average: PropTypes.number,
+    vote_count: PropTypes.number,
+    poster_path: PropTypes.string,
+  }).isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+export default FilmListItem;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    paddingVertical: 8,
+  },
+  informationContainer: {
+    flex: 1,
+    marginLeft: 12,
+    marginTop: 8,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    marginTop: 12,
+  },
+  statContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  poster: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: Colors.primary_blue,
+  },
+  noPoster: {
+    width: 120,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  voteAverage: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.primary_blue,
+  },
+  voteCount: {
+    fontSize: 14,
+    alignSelf: "flex-end",
+    fontStyle: "italic",
+  },
+  overview: {
+    fontSize: 16,
+  },
+  icon: {
+    tintColor: Colors.primary_blue,
+    width: 20,
+    height: 20,
+    marginRight: 4,
+  },
+});
+
+```
+
+```
+//Search.js
+
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  FlatList,
+  Keyboard,
+} from "react-native";
+
+import FilmListItem from "../components/FilmListItem";
+import DisplayError from "./DisplayError";
+
+import Colors from "../definitions/Colors";
+import { searchMovie } from "../api/TMDB";
+
+const Search = ({ navigation }) => {
+  const [films, setFilms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMorePages, setIsMorePages] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isError, setIsError] = useState(false);
+
+  const searchFilms = async (currentFilms, pageToRequest) => {
+    setIsRefreshing(true);
+    setIsError(false);
+    console.log(
+      "Search Movies; previously " +
+        currentFilms.length +
+        " films and will request page n° " +
+        pageToRequest
+    );
+    try {
+      const TMDBSearchMovieResult = await searchMovie(
+        searchTerm,
+        pageToRequest
+      );
+      setFilms([...currentFilms, ...TMDBSearchMovieResult.results]);
+      setCurrentPage(TMDBSearchMovieResult.page);
+      TMDBSearchMovieResult.page == TMDBSearchMovieResult.total_pages
+        ? setIsMorePages(false)
+        : setIsMorePages(true);
+    } catch (error) {
+      setIsError(true);
+      setFilms([]);
+      setIsMorePages(true);
+      setCurrentPage(1);
+    }
+    setIsRefreshing(false);
+  };
+
+  const newSearchFilms = () => {
+    Keyboard.dismiss();
+    searchFilms([], 1);
+  };
+
+  const loadMoreFilms = () => {
+    if (isMorePages) {
+      searchFilms(films, currentPage + 1);
+    }
+  };
+
+  const navigateFilmDetails = () => {
+    navigation.navigate("ViewFilm");
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Terme à chercher"
+          style={styles.inputSearchTerm}
+          onChangeText={(text) => setSearchTerm(text)}
+          onSubmitEditing={newSearchFilms}
+        />
+        <Button
+          title="Rechercher"
+          color={Colors.primary_blue}
+          onPress={newSearchFilms}
+        />
+      </View>
+      {isError ? (
+        <DisplayError message="Impossible de récupérer les films" />
+      ) : (
+        <FlatList
+          data={films}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <FilmListItem filmData={item} onClick={navigateFilmDetails} />
+          )}
+          onEndReached={loadMoreFilms}
+          onEndReachedThreshold={0.5}
+          refreshing={isRefreshing}
+          onRefresh={newSearchFilms}
+        />
+      )}
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
+
+```
+
+```
+//Navigation.js
+
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+
+import Search from "../components/Search";
+import Film from "../components/Film";
+
+const SearchNavigation = createStackNavigator();
+
+function RootStack() {
+  return (
+    <SearchNavigation.Navigator initialRouteName="ViewSearch">
+      <SearchNavigation.Screen
+        name="ViewSearch"
+        component={Search}
+        options={{ title: "Recherche" }}
+      />
+      <SearchNavigation.Screen
+        name="ViewFilm"
+        component={Film}
+        options={{ title: "Film" }}
+      />
+    </SearchNavigation.Navigator>
+  );
+}
+
+export default RootStack;
+
+```
+
+```
+//App.js
+
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+
+import Navigation from "./src/navigation/Navigation";
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Navigation />
+      <StatusBar style="auto" />
+    </NavigationContainer>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+});
+
+```
+
+</details>
+
+### Effets de bord et cycle de vie (hook d'effets)
+
+Les effets de bord sont des évènements communs dans la vie d'un composant; par exemple charger des données depuis internet afin de les afficher, "s'abonner" à un service pour être notifié d'un changement de valeur, etc... Il existe 2 types d'effets de bord:
+
+- Sans nettoyage. Par exemple au chargement du composant, ce dernier doit faire une requête pour récupérer des données à afficher
+- Avec nettoyage. Par exemple au chargement du composant, ce dernier doit s'abonner à un service pour être prévenu d'un futur changement, et lorsque le composant se détruit il doit se désabonner du service
+
+Avec les Hooks de React, les effets de bord sont gérés via la fonction _useEffect_.
+
+Exemple sans nettoyage. A chaque fois que le composant va s'afficher (donc à _l'initialisation (montage)_ ainsi qu'à chaque _refresh_) le code sera exécuté:
+
+```
+useEffect(() => {
+  // Met à jour le titre du document via l’API du navigateur
+  document.title = `Vous avez cliqué ${count} fois`;
+});
+```
+
+Exemple avec nettoyage. A chaque fois que le composant va s'afficher (donc à _l'initialisation (montage)_ ainsi qu'à chaque _refresh_) le code sera exécuté. De plus, au moment ou le composant va se _détruire (démonter)_ la fonction du return sera exécutée:
+
+```
+useEffect(() => {
+  // Code classique du useEffect
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+  ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
+  // Indique comment nettoyer l'effet :
+  return function cleanup() { // Le nom de la fonction n'a pas d'importance
+    ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+  };
+});
+```
+
+_useEffect_ est appelée à chaque fois que le composant se met à jour. Un comportement standard est de vouloir exécuter la fonction que lorsqu'une ou plusieurs données changent:
+
+```
+useEffect(() => {
+  document.title = `Vous avez cliqué ${count} fois`;
+}, [count]); // N’exécute l’effet que si count a changé
+```
+
+Un autre cas commun est de vouloir exécuter _useEffect_ uniquement à l'initialisation du composant:
+
+```
+useEffect(() => {
+  document.title = loadData();
+}, []); // N’exécute que lors de l'initialisation
+```
+
+### Récupérer les données du film
+
+Le but de la nouvelle page est d'afficher les informations d'un film, en chargeant les données depuis l'API (pour l'instant uniquement le nom). Voici le comportement à mettre en place ainsi que des indications:
+
+- Ajoutez une fonction dans _film.js_ prennant en paramètre l'id d'un film pour récupérer les données (regardez la doc pour voir l'endpoint à utiliser)
+- Passez l'id du film en paramètre de la navigation à la page des détails du film
+- Mettez en place le chargement de la page du film:
+  - Affichez un loader à l'initialisation de la page (composant _ActivityIndicator_)
+  - Un fois le composant React initialisé, faite un call API pour récupérer les données du film (via _UseEffect_)
+  - Une fois les données du film récupérées, arrétez d'afficher le loader et affichez le nom du film (ou le composant d'erreur si échec du call)
+
+_Pourquoi ne pas mettre le call API dans le \_useState_?\_  
+Le retour de l'API est incertain; nous ne savons pas quand il va revenir ni même s'il va revenir. De plus il faut être certain que le composant a fini de s'initialiser avant de vouloir le modifier.
+
+Résultat attendu:
+
+<img src="imgs/film1.png" height="400" />
+<img src="imgs/film2.png" height="400" />
+<br/>
+
+<details>
+<summary>Correction</summary>
+
+```
 
 ```
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Image, Text } from "react-native";
+import { View, StyleSheet, Image, Text, TouchableOpacity } from "react-native";
 import PropTypes from "prop-types";
 
 import Assets from "../definitions/Assets";
@@ -7,6 +7,7 @@ import Colors from "../definitions/Colors";
 
 const FilmListItem = ({
   filmData: { original_title, overview, vote_average, vote_count, poster_path },
+  onClick,
 }) => {
   const getPoster = () => {
     if (poster_path) {
@@ -25,7 +26,7 @@ const FilmListItem = ({
   };
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={onClick}>
       {getPoster()}
       <View style={styles.informationContainer}>
         <Text style={styles.title}>{original_title}</Text>
@@ -42,7 +43,7 @@ const FilmListItem = ({
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -54,6 +55,7 @@ FilmListItem.propTypes = {
     vote_count: PropTypes.number,
     poster_path: PropTypes.string,
   }).isRequired,
+  onClick: PropTypes.func.isRequired,
 };
 
 export default FilmListItem;
