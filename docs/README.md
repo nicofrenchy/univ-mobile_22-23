@@ -4047,6 +4047,108 @@ La prop _loading_ permet de définir un composant à afficher tant que le store 
 <summary>Correction</summary>
 
 ```
+//config.js
+
+import { configureStore } from "@reduxjs/toolkit";
+import {
+  persistStore,
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import favFilmsReducer from "./reducers/favFilmsSlice";
+
+const configPersist = {
+  key: "root",
+  storage: AsyncStorage,
+};
+
+const persistedReducer = persistReducer(configPersist, favFilmsReducer);
+
+export const store = configureStore({
+  reducer: {
+    favFilms: persistedReducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
+});
+
+export const persistor = persistStore(store);
+
+```
+
+```
+//App.js
+
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { Provider } from "react-redux";
+import { RootSiblingParent } from "react-native-root-siblings";
+import { PersistGate } from "redux-persist/integration/react";
+
+import Navigation from "./src/navigation/Navigation";
+import { store, persistor } from "./src/store/config";
+
+export default function App() {
+  return (
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <RootSiblingParent>
+          <NavigationContainer>
+            <Navigation />
+            <StatusBar style="auto" />
+          </NavigationContainer>
+        </RootSiblingParent>
+      </PersistGate>
+    </Provider>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+});
+
+```
+
+</details>
+
+### Vue dédiée aux films en favoris
+
+Dernière fonctionnalité principale à ajouter au projet, séparer la vue en 2 tabs permettant de soit faire une recherche, soit consulter les films en favoris.
+
+- Modifiez la navigation en utilisant le bon composant pour avoir plusieurs onglets
+- Effectuez les changements nécessaires pour consulter les films sauvegardés
+
+Pour le premier point, je vous laisse consulter la documentation. Cela fonctionne de la même façon que le _StackNavigator_.  
+Pour le second point, prenez en compte les éléments suivants:
+
+- Réutilisez les composants que vous avez
+- Pensez à faire les requêtes necessaires pour récupérer les films favoris, et rafraichir les données quand les films favoris changent
+
+Résultat attendu:
+
+<img src="imgs/tab1.png" height="400" />
+<img src="imgs/tab2.png" height="400" />
+</br>
+
+<details>
+<summary>Correction</summary>
+
+```
 
 ```
 
