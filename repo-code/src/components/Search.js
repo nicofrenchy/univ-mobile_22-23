@@ -7,6 +7,7 @@ import {
   FlatList,
   Keyboard,
 } from "react-native";
+import { useSelector } from "react-redux";
 
 import FilmListItem from "../components/FilmListItem";
 import DisplayError from "./DisplayError";
@@ -21,6 +22,8 @@ const Search = ({ navigation }) => {
   const [isMorePages, setIsMorePages] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isError, setIsError] = useState(false);
+
+  const favFilmIDs = useSelector((state) => state.favFilms.favFilmIDs);
 
   const searchFilms = async (currentFilms, pageToRequest) => {
     setIsRefreshing(true);
@@ -65,6 +68,10 @@ const Search = ({ navigation }) => {
     navigation.navigate("ViewFilm", { filmID });
   };
 
+  const isFilmFaved = (id) => {
+    return favFilmIDs.includes(id);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
@@ -92,6 +99,7 @@ const Search = ({ navigation }) => {
               onClick={() => {
                 navigateFilmDetails(item.id);
               }}
+              isHighlighted={isFilmFaved(item.id)}
             />
           )}
           onEndReached={loadMoreFilms}

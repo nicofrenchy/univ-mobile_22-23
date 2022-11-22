@@ -3433,6 +3433,588 @@ Résultat attendu:
 <summary>Correction</summary>
 
 ```
+//Assets.js
+
+import icon_voteAverage from "../../assets/voteAverage.png";
+import icon_error from "../../assets/error.png";
+import icon_missingIMG from "../../assets/missingImage.png";
+import icon_favFull from "../../assets/favFull.png";
+
+const Assets = {
+  icons: {
+    voteAverage: icon_voteAverage,
+    error: icon_error,
+    missingIMG: icon_missingIMG,
+    fav: icon_favFull,
+  },
+};
+
+export default Assets;
+
+```
+
+```
+//Film.js
+
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+  ScrollView,
+  Image,
+  Button,
+} from "react-native";
+import { useSelector, useDispatch } from "react-redux";
+import Toast from "react-native-root-toast";
+
+import DisplayError from "../components/DisplayError";
+import ProductionCompanyItem from "../components/ProductionCompanyItem";
+
+import { detailsMovie } from "../api/TMDB";
+
+import { favFilm, unfavFilm } from "../store/reducers/favFilmsSlice";
+
+import Colors from "../definitions/Colors";
+import Assets from "../definitions/Assets";
+
+const Film = ({ route }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [film, setFilm] = useState(null);
+  const [isError, setIsError] = useState(false);
+
+  //Redux related
+  const favFilmIDs = useSelector((state) => state.favFilms.favFilmIDs);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    requestFilm();
+  }, []); //Uniquement à l'initialisation
+
+  //Pourrait être directement déclarée dans useEffect
+  const requestFilm = async () => {
+    try {
+      const TMDBDetailsMovieResult = await detailsMovie(route.params.filmID);
+      setFilm(TMDBDetailsMovieResult);
+      setIsLoading(false);
+    } catch (error) {
+      setIsError(true);
+    }
+  };
+
+  const displayFilmBackdrop = () => {
+    if (film.backdrop_path) {
+      return (
+        <Image
+          style={styles.filmBackdrop}
+          source={{
+            uri: `https://image.tmdb.org/t/p/w500/${film.backdrop_path}`,
+          }}
+        />
+      );
+    }
+    return (
+      <View style={styles.containerNoFilmBackdrop}>
+        <Image source={Assets.icons.missingIMG} />
+      </View>
+    );
+  };
+
+  const displayProductionCompanies = () => {
+    let companiesJSX = [];
+    film.production_companies.forEach((company, index) => {
+      companiesJSX.push(
+        <ProductionCompanyItem key={index} companyData={company} />
+      );
+    });
+    return <View>{companiesJSX}</View>;
+  };
+
+  const getGenres = () => {
+    let genres = "";
+    if (film.genres) {
+      film.genres.forEach((genre) => {
+        genres += genre.name + " - ";
+      });
+      genres = genres.slice(0, -3);
+    }
+    return genres;
+  };
+
+  const displayFavButton = () => {
+    if (favFilmIDs.includes(film.id)) {
+      // Le film est en favoris
+      return (
+        <Button
+          title="Retirer des favoris"
+          color={Colors.primary_blue}
+          onPress={() => {
+            dispatch(unfavFilm(film.id));
+            Toast.show("Film retiré des favoris", {
+              duration: Toast.durations.LONG,
+            });
+          }}
+        />
+      );
+    }
+    // Le film n'est pas en favoris
+    return (
+      <Button
+        title="Ajouter aux favoris"
+        color={Colors.primary_blue}
+        onPress={() => {
+          dispatch(favFilm(film.id));
+          Toast.show("Film ajouté aux favoris", {
+            duration: Toast.durations.LONG,
+          });
+        }}
+      />
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {isError ? (
+        <DisplayError message="Impossible de récupérer les données du film" />
+      ) : isLoading ? (
+        <View style={styles.containerLoading}>
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        <ScrollView style={styles.containerScroll}>
+          {displayFilmBackdrop()}
+          <View style={styles.containerCardTop}>
+            <View style={styles.containerHeaderMovie}>
+              <Text style={styles.textOriginalTitle}>
+                {film.original_title}
+              </Text>
+              <Text style={styles.textContent}>{film.tagline}</Text>
+            </View>
+            <View style={styles.containerVotes}>
+              <View style={styles.containerVoteAverage}>
+                <Text style={styles.textVoteAverage}>{film.vote_average}</Text>
+                <Text style={styles.textMaxVote}>/10</Text>
+              </View>
+              <Text style={styles.textVotesCount}>{film.vote_count} votes</Text>
+            </View>
+          </View>
+          <View style={styles.containerCardBottom}>
+            {displayFavButton()}
+            <Text style={styles.textInfoName}>Release Date</Text>
+            <Text style={styles.textContent}>{film.release_date}</Text>
+            <Text style={styles.textInfoName}>Genres</Text>
+            <Text style={styles.textContent}>{getGenres()}</Text>
+            <Text style={styles.textInfoName}>Revenue</Text>
+            <Text style={styles.textContent}>{film.revenue + " $"}</Text>
+            <Text style={styles.textInfoName}>Production Companies</Text>
+            {displayProductionCompanies()}
+          </View>
+        </ScrollView>
+      )}
+    </View>
+  );
+};
+
+export default Film;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  containerLoading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  containerScroll: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+  },
+  containerCardTop: {
+    elevation: 1,
+    borderRadius: 3,
+    padding: 12,
+    flexDirection: "row",
+    backgroundColor: "white",
+  },
+  containerCardBottom: {
+    elevation: 1,
+    marginTop: 16,
+    borderRadius: 3,
+    padding: 12,
+    backgroundColor: "white",
+  },
+  containerHeaderMovie: {
+    flex: 4,
+    marginRight: 8,
+  },
+  containerVotes: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  containerVoteAverage: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: Colors.primary_blue,
+    borderRadius: 3,
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+  containerNoFilmBackdrop: {
+    height: 128,
+    alignItems: "center",
+    justifyContent: "center",
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+    backgroundColor: "white",
+  },
+  filmBackdrop: {
+    height: 180,
+    backgroundColor: Colors.primary_blue,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+  },
+  textOriginalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  textContent: {
+    fontSize: 16,
+  },
+  textInfoName: {
+    fontWeight: "bold",
+    color: Colors.primary_blue,
+    fontSize: 16,
+    marginTop: 16,
+  },
+  textVoteAverage: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  textMaxVote: {
+    fontSize: 12,
+    marginLeft: 3,
+    color: "white",
+  },
+  textVotesCount: {
+    fontStyle: "italic",
+    fontSize: 12,
+  },
+});
+
+```
+
+```
+//App.js
+
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { Provider } from "react-redux";
+import { RootSiblingParent } from "react-native-root-siblings";
+
+import Navigation from "./src/navigation/Navigation";
+import { store } from "./src/store/config";
+
+export default function App() {
+  return (
+    <RootSiblingParent>
+      <Provider store={store}>
+        <NavigationContainer>
+          <Navigation />
+          <StatusBar style="auto" />
+        </NavigationContainer>
+      </Provider>
+    </RootSiblingParent>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+});
+
+```
+
+```
+//FilmListItem.js
+
+import React from "react";
+import { View, StyleSheet, Image, Text, TouchableOpacity } from "react-native";
+import PropTypes from "prop-types";
+
+import Assets from "../definitions/Assets";
+import Colors from "../definitions/Colors";
+
+const FilmListItem = ({
+  filmData: { original_title, overview, vote_average, vote_count, poster_path },
+  onClick,
+  isHighlighted,
+}) => {
+  const getPoster = () => {
+    if (poster_path) {
+      return (
+        <Image
+          style={styles.poster}
+          source={{ uri: `https://image.tmdb.org/t/p/w500/${poster_path}` }}
+        />
+      );
+    }
+    return (
+      <View style={styles.noPoster}>
+        <Image source={Assets.icons.missingIMG} />
+      </View>
+    );
+  };
+
+  return (
+    <TouchableOpacity style={styles.container} onPress={onClick}>
+      {getPoster()}
+      <View style={styles.informationContainer}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>{original_title}</Text>
+          {isHighlighted ? (
+            <Image style={styles.highlight} source={Assets.icons.fav} />
+          ) : null}
+        </View>
+        <Text style={styles.overview} numberOfLines={4}>
+          {overview}
+        </Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statContainer}>
+            <Image style={styles.icon} source={Assets.icons.voteAverage} />
+            <Text style={styles.voteAverage}>{vote_average}</Text>
+          </View>
+          <View style={styles.statContainer}>
+            <Text style={styles.voteCount}>{vote_count} votes</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+FilmListItem.propTypes = {
+  filmData: PropTypes.shape({
+    original_title: PropTypes.string,
+    overview: PropTypes.string,
+    vote_average: PropTypes.number,
+    vote_count: PropTypes.number,
+    poster_path: PropTypes.string,
+  }).isRequired,
+  onClick: PropTypes.func.isRequired,
+  isHighlighted: PropTypes.bool.isRequired,
+};
+
+export default FilmListItem;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    paddingVertical: 8,
+  },
+  informationContainer: {
+    flex: 1,
+    marginLeft: 12,
+    marginTop: 8,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    marginTop: 12,
+  },
+  titleContainer: {
+    flexDirection: "row",
+  },
+  statContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  poster: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: Colors.primary_blue,
+  },
+  noPoster: {
+    width: 120,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    flex: 1,
+  },
+  voteAverage: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.primary_blue,
+  },
+  voteCount: {
+    fontSize: 14,
+    alignSelf: "flex-end",
+    fontStyle: "italic",
+  },
+  overview: {
+    fontSize: 16,
+  },
+  icon: {
+    tintColor: Colors.primary_blue,
+    width: 20,
+    height: 20,
+    marginRight: 4,
+  },
+  highlight: {
+    tintColor: Colors.primary_blue,
+    width: 20,
+    height: 20,
+    marginHorizontal: 4,
+    marginTop: 6,
+  },
+});
+
+```
+
+```
+//Search.js
+
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  FlatList,
+  Keyboard,
+} from "react-native";
+import { useSelector } from "react-redux";
+
+import FilmListItem from "../components/FilmListItem";
+import DisplayError from "./DisplayError";
+
+import Colors from "../definitions/Colors";
+import { searchMovie } from "../api/TMDB";
+
+const Search = ({ navigation }) => {
+  const [films, setFilms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMorePages, setIsMorePages] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isError, setIsError] = useState(false);
+
+  const favFilmIDs = useSelector((state) => state.favFilms.favFilmIDs);
+
+  const searchFilms = async (currentFilms, pageToRequest) => {
+    setIsRefreshing(true);
+    setIsError(false);
+    console.log(
+      "Search Movies; previously " +
+        currentFilms.length +
+        " films and will request page n° " +
+        pageToRequest
+    );
+    try {
+      const TMDBSearchMovieResult = await searchMovie(
+        searchTerm,
+        pageToRequest
+      );
+      setFilms([...currentFilms, ...TMDBSearchMovieResult.results]);
+      setCurrentPage(TMDBSearchMovieResult.page);
+      TMDBSearchMovieResult.page == TMDBSearchMovieResult.total_pages
+        ? setIsMorePages(false)
+        : setIsMorePages(true);
+    } catch (error) {
+      setIsError(true);
+      setFilms([]);
+      setIsMorePages(true);
+      setCurrentPage(1);
+    }
+    setIsRefreshing(false);
+  };
+
+  const newSearchFilms = () => {
+    Keyboard.dismiss();
+    searchFilms([], 1);
+  };
+
+  const loadMoreFilms = () => {
+    if (isMorePages) {
+      searchFilms(films, currentPage + 1);
+    }
+  };
+
+  const navigateFilmDetails = (filmID) => {
+    navigation.navigate("ViewFilm", { filmID });
+  };
+
+  const isFilmFaved = (id) => {
+    return favFilmIDs.includes(id);
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Terme à chercher"
+          style={styles.inputSearchTerm}
+          onChangeText={(text) => setSearchTerm(text)}
+          onSubmitEditing={newSearchFilms}
+        />
+        <Button
+          title="Rechercher"
+          color={Colors.primary_blue}
+          onPress={newSearchFilms}
+        />
+      </View>
+      {isError ? (
+        <DisplayError message="Impossible de récupérer les films" />
+      ) : (
+        <FlatList
+          data={films}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <FilmListItem
+              filmData={item}
+              onClick={() => {
+                navigateFilmDetails(item.id);
+              }}
+              isHighlighted={isFilmFaved(item.id)}
+            />
+          )}
+          onEndReached={loadMoreFilms}
+          onEndReachedThreshold={0.5}
+          refreshing={isRefreshing}
+          onRefresh={newSearchFilms}
+        />
+      )}
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  inputSearchTerm: {
+    marginBottom: 16,
+  },
+});
 
 ```
 

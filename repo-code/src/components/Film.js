@@ -9,6 +9,7 @@ import {
   Button,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
+import Toast from "react-native-root-toast";
 
 import DisplayError from "../components/DisplayError";
 import ProductionCompanyItem from "../components/ProductionCompanyItem";
@@ -90,7 +91,12 @@ const Film = ({ route }) => {
         <Button
           title="Retirer des favoris"
           color={Colors.primary_blue}
-          onPress={() => dispatch(unfavFilm(film.id))}
+          onPress={() => {
+            dispatch(unfavFilm(film.id));
+            Toast.show("Film retiré des favoris", {
+              duration: Toast.durations.LONG,
+            });
+          }}
         />
       );
     }
@@ -99,7 +105,12 @@ const Film = ({ route }) => {
       <Button
         title="Ajouter aux favoris"
         color={Colors.primary_blue}
-        onPress={() => dispatch(favFilm(film.id))}
+        onPress={() => {
+          dispatch(favFilm(film.id));
+          Toast.show("Film ajouté aux favoris", {
+            duration: Toast.durations.LONG,
+          });
+        }}
       />
     );
   };

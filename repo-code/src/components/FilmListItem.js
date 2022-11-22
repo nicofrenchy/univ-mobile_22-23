@@ -8,6 +8,7 @@ import Colors from "../definitions/Colors";
 const FilmListItem = ({
   filmData: { original_title, overview, vote_average, vote_count, poster_path },
   onClick,
+  isHighlighted,
 }) => {
   const getPoster = () => {
     if (poster_path) {
@@ -29,7 +30,12 @@ const FilmListItem = ({
     <TouchableOpacity style={styles.container} onPress={onClick}>
       {getPoster()}
       <View style={styles.informationContainer}>
-        <Text style={styles.title}>{original_title}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>{original_title}</Text>
+          {isHighlighted ? (
+            <Image style={styles.highlight} source={Assets.icons.fav} />
+          ) : null}
+        </View>
         <Text style={styles.overview} numberOfLines={4}>
           {overview}
         </Text>
@@ -56,6 +62,7 @@ FilmListItem.propTypes = {
     poster_path: PropTypes.string,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
+  isHighlighted: PropTypes.bool.isRequired,
 };
 
 export default FilmListItem;
@@ -73,6 +80,9 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: "row",
     marginTop: 12,
+  },
+  titleContainer: {
+    flexDirection: "row",
   },
   statContainer: {
     flexDirection: "row",
@@ -94,6 +104,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
+    flex: 1,
   },
   voteAverage: {
     fontSize: 16,
@@ -113,5 +124,12 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     marginRight: 4,
+  },
+  highlight: {
+    tintColor: Colors.primary_blue,
+    width: 20,
+    height: 20,
+    marginHorizontal: 4,
+    marginTop: 6,
   },
 });
