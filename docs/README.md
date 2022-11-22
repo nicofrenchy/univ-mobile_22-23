@@ -4019,3 +4019,35 @@ const styles = StyleSheet.create({
 ```
 
 </details>
+
+### Conserver les films
+
+Actuellement le store est réinitialisé à chaque démarrage de l'application. Pour conserver l'état du store de Redux nous pouvons utiliser _redux-persist_. Il est basé sur 2 concepts:
+
+- Persist: sauvegarde l'information du store
+- Rehydrate: récupère l'information et l'injecte dans le store
+
+Installation (async-storage permet de stocker les données)
+
+```
+npm install redux-persist
+npm install @react-native-async-storage/async-storage
+```
+
+Documentation à regarder:
+
+- [redux-persist GitHub](https://github.com/rt2zz/redux-persist)
+- [Redux Toolkit - use with redux-persist](https://redux-toolkit.js.org/usage/usage-guide#use-with-redux-persist)
+
+La prop _loading_ permet de définir un composant à afficher tant que le store n'est pas réhydraté (par exemple, un _ActivityIndicator_). De nombreuses options sont disponibles avec _redux-persist_, je vous encourage à essayer.
+
+**Mettez en place redux-persist dans le projet.**
+
+<details>
+<summary>Correction</summary>
+
+```
+
+```
+
+</details>
