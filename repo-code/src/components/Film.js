@@ -6,12 +6,16 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  Button,
 } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 
 import DisplayError from "../components/DisplayError";
 import ProductionCompanyItem from "../components/ProductionCompanyItem";
 
 import { detailsMovie } from "../api/TMDB";
+
+import { favFilm, unfavFilm } from "../store/reducers/favFilmsSlice";
 
 import Colors from "../definitions/Colors";
 import Assets from "../definitions/Assets";
@@ -20,6 +24,10 @@ const Film = ({ route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [film, setFilm] = useState(null);
   const [isError, setIsError] = useState(false);
+
+  //Redux related
+  const favFilmIDs = useSelector((state) => state.favFilms.favFilmIDs);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     requestFilm();
@@ -75,6 +83,27 @@ const Film = ({ route }) => {
     return genres;
   };
 
+  const displayFavButton = () => {
+    if (favFilmIDs.includes(film.id)) {
+      // Le film est en favoris
+      return (
+        <Button
+          title="Retirer des favoris"
+          color={Colors.primary_blue}
+          onPress={() => dispatch(unfavFilm(film.id))}
+        />
+      );
+    }
+    // Le film n'est pas en favoris
+    return (
+      <Button
+        title="Ajouter aux favoris"
+        color={Colors.primary_blue}
+        onPress={() => dispatch(favFilm(film.id))}
+      />
+    );
+  };
+
   return (
     <View style={styles.container}>
       {isError ? (
@@ -102,9 +131,8 @@ const Film = ({ route }) => {
             </View>
           </View>
           <View style={styles.containerCardBottom}>
-            <Text style={[styles.textInfoName, { marginTop: 0 }]}>
-              Release Date
-            </Text>
+            {displayFavButton()}
+            <Text style={styles.textInfoName}>Release Date</Text>
             <Text style={styles.textContent}>{film.release_date}</Text>
             <Text style={styles.textInfoName}>Genres</Text>
             <Text style={styles.textContent}>{getGenres()}</Text>
