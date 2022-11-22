@@ -4149,7 +4149,217 @@ Résultat attendu:
 <summary>Correction</summary>
 
 ```
+//Assets.js
+
+import icon_voteAverage from "../../assets/voteAverage.png";
+import icon_error from "../../assets/error.png";
+import icon_missingIMG from "../../assets/missingImage.png";
+import icon_favFull from "../../assets/favFull.png";
+import icon_search from "../../assets/search.png";
+
+const Assets = {
+  icons: {
+    voteAverage: icon_voteAverage,
+    error: icon_error,
+    missingIMG: icon_missingIMG,
+    fav: icon_favFull,
+    search: icon_search,
+  },
+};
+
+export default Assets;
 
 ```
+
+```
+//FilmsFaved.js
+
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, FlatList } from "react-native";
+import { useSelector } from "react-redux";
+
+import FilmListItem from "./FilmListItem";
+import DisplayError from "./DisplayError";
+
+import { detailsMovie } from "../api/TMDB";
+
+const FilmsFaved = ({ navigation }) => {
+  const [films, setFilms] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const favFilmIDs = useSelector((state) => state.favFilms.favFilmIDs);
+
+  useEffect(() => {
+    refreshFavedFilms();
+  }, [favFilmIDs]); // A chaque fois que les films favoris changent
+
+  /**
+   *
+   * Utilisation de FilmListItem fonctionne avec detailsMovie() comme avec searchMovie()
+   * car les deux retourne un objet contenant au moins les données qui nous intéressent
+   *
+   * Assure de toujours avoir des données à jour mais beaucoup de calls API inutiles
+   * Amélioration possible pour stocker les données des films localement et ne refresh que à des moments clés
+   *
+   **/
+  const refreshFavedFilms = async () => {
+    setIsRefreshing(true);
+    setIsError(false);
+    let refreshedFavedFilms = [];
+    try {
+      for (const id of favFilmIDs) {
+        const TMDBDetailsMovieResult = await detailsMovie(id);
+        refreshedFavedFilms.push(TMDBDetailsMovieResult);
+      }
+      setFilms(refreshedFavedFilms);
+    } catch (error) {
+      setIsError(true);
+      setFilms([]);
+    }
+    setIsRefreshing(false);
+  };
+
+  const navigateFilmDetails = (filmID) => {
+    navigation.navigate("ViewFilm", { filmID });
+  };
+
+  return (
+    <View style={styles.container}>
+      {isError ? (
+        <DisplayError message="Impossible de récupérer les films favoris" />
+      ) : (
+        <FlatList
+          data={films}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <FilmListItem
+              filmData={item}
+              onClick={() => {
+                navigateFilmDetails(item.id);
+              }}
+              isHighlighted={true}
+            />
+          )}
+          refreshing={isRefreshing}
+          onRefresh={refreshFavedFilms}
+        />
+      )}
+    </View>
+  );
+};
+
+export default FilmsFaved;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+});
+
+```
+
+```
+//Navigation.js
+
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Image } from "react-native";
+
+import Search from "../components/Search";
+import Film from "../components/Film";
+import FilmsFaved from "../components/FilmsFaved";
+
+import Colors from "../definitions/Colors";
+import Assets from "../definitions/Assets";
+
+const SearchNavigation = createStackNavigator();
+const FavedNavigation = createStackNavigator();
+const TabNavigation = createBottomTabNavigator();
+
+function SearchStack() {
+  return (
+    <SearchNavigation.Navigator initialRouteName="ViewSearch">
+      <SearchNavigation.Screen
+        name="ViewSearch"
+        component={Search}
+        options={{ title: "Recherche" }}
+      />
+      <SearchNavigation.Screen
+        name="ViewFilm"
+        component={Film}
+        options={{ title: "Film" }}
+      />
+    </SearchNavigation.Navigator>
+  );
+}
+
+function FavedStack() {
+  return (
+    <FavedNavigation.Navigator initialRouteName="ViewFaved">
+      <FavedNavigation.Screen
+        name="ViewFaved"
+        component={FilmsFaved}
+        options={{ title: "Favoris" }}
+      />
+      <FavedNavigation.Screen
+        name="ViewFilm"
+        component={Film}
+        options={{ title: "Film" }}
+      />
+    </FavedNavigation.Navigator>
+  );
+}
+
+function RootStack() {
+  return (
+    <TabNavigation.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: Colors.primary_blue,
+        headerShown: false,
+      }}>
+      <TabNavigation.Screen
+        name="Recherche"
+        component={SearchStack}
+        options={() => ({
+          tabBarIcon: ({ color }) => {
+            return (
+              <Image
+                source={Assets.icons.search}
+                style={{ tintColor: color }}
+              />
+            );
+          },
+        })}
+      />
+      <TabNavigation.Screen
+        name="Favoris"
+        component={FavedStack}
+        options={() => ({
+          tabBarIcon: ({ color }) => {
+            return (
+              <Image source={Assets.icons.fav} style={{ tintColor: color }} />
+            );
+          },
+        })}
+      />
+    </TabNavigation.Navigator>
+  );
+}
+
+export default RootStack;
+
+```
+
+## Pour aller plus loin
+
+Bravo! Vous êtes arrivé au bout de l'application V1. Nous avons couvert les bases du développement avec React Native. Pour continuer à pratiquer, vous pouvez essayer de:
+
+- Affichez les commentaires / reviews des utilisateurs sur un film, sur la page dudit film
+- Gérez la langue des résultats. Actuellement tout est en anglais, mais pourquoi pas ne gérer pour afficher l'interface / les résultats dans d'autres langues?
+- Actuellement la page de recherche est bien vide par défaut. Si il n'y a pas de recherche, pourquoi ne pas afficher les films en tendance?
+- Utilisez une bibliothèque graphique. Il existe des solutions très populaires, par exemple _UI Kitten_, pour gérer l'interface des applications
 
 </details>
